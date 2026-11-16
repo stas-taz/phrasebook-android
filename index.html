@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#E9EEF6" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <title>Разговорник</title>
+  <style>
+    :root {
+      --md-bg: #F7F9FC;
+      --md-surface: #F7F9FC;
+      --md-surface-low: #F0F4F9;
+      --md-surface-container: #E9EEF6;
+      --md-surface-high: #FFFFFF;
+      --md-ink: #1A1C1E;
+      --md-muted: #44474E;
+      --md-outline: #74777F;
+      --md-outline-variant: #C4C7C5;
+      --md-primary: #0B57D0;
+      --md-on-primary: #FFFFFF;
+      --md-primary-container: #D3E3FD;
+      --md-on-primary-container: #041E49;
+      --md-secondary-container: #C2E7FF;
+      --md-on-secondary-container: #001D35;
+      --md-tertiary-container: #FFDAD6;
+      --md-on-tertiary-container: #410002;
+      --md-error: #BA1A1A;
+      --scale: 1;
+      --font: "Roboto", "Google Sans", system-ui, -apple-system, sans-serif;
+      --mono: "Roboto Mono", ui-monospace, monospace;
+      --elev-1: 0 1px 2px rgba(0,0,0,.08), 0 1px 3px 1px rgba(0,0,0,.04);
+      --elev-3: 0 4px 8px 3px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.08);
+    }
+
+    :root[data-theme="dark"] {
+      --md-bg: #111318;
+      --md-surface: #111318;
+      --md-surface-low: #191C20;
+      --md-surface-container: #1D2024;
+      --md-surface-high: #282A2F;
+      --md-ink: #E2E2E6;
+      --md-muted: #C4C6D0;
+      --md-outline: #8E9099;
+      --md-outline-variant: #44474E;
+      --md-primary: #A8C7FA;
+      --md-on-primary: #062E6F;
+      --md-primary-container: #0842A0;
+      --md-on-primary-container: #D3E3FD;
+      --md-secondary-container: #004A77;
+      --md-on-secondary-container: #C2E7FF;
+      --md-tertiary-container: #93000A;
+      --md-on-tertiary-container: #FFDAD6;
+      --md-error: #FFB4AB;
+      --elev-1: 0 1px 3px rgba(0,0,0,.35);
+      --elev-3: 0 6px 16px rgba(0,0,0,.5);
+    }
+
+    html[data-size="big"] { --scale: 1.16; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: #E1E5EC; color: var(--md-ink);
+      font-family: var(--font); font-size: 16px; line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    :root[data-theme="dark"] body { background: #0B0C0E; }
+
+    body { min-height: 100dvh; display: flex; justify-content: center; }
+
+    .app {
+      width: 100%; max-width: 412px; min-height: 100dvh;
+      display: flex; flex-direction: column;
+      background: var(--md-bg);
+      box-shadow: 0 16px 48px rgba(0,0,0,.16);
+      position: relative;
+      transition: background-color .25s ease, color .25s ease;
+    }
+    @media (max-width: 480px) { .app { max-width: 100%; box-shadow: none; } }
+
+    /* ---------- Material 3 Top App Bar ---------- */
+    .m3-topbar {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; padding: 8px 12px 8px 16px;
+      background: var(--md-surface-container);
+      color: var(--md-ink);
+      transition: background-color .25s ease;
+    }
+    .m3-nav-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .m3-title-wrap { min-width: 0; }
+    .m3-title {
+      font-size: 20px; font-weight: 500; letter-spacing: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .m3-subtitle { font-size: 12px; color: var(--md-muted); line-height: 1.1; }
+    .m3-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    .m3-icon-btn {
+      width: 40px; height: 40px; border-radius: 20px; border: 0;
+      background: transparent; color: var(--md-ink);
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; font: inherit; font-weight: 600; font-size: 14px;
+    }
+    .m3-icon-btn:hover { background: rgba(128,128,128,.1); }
+    .m3-icon-btn.is-active { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+
+    .m3-lang-chip {
+      height: 34px; padding: 0 12px; border-radius: 17px; border: 0;
+      background: var(--md-primary-container); color: var(--md-on-primary-container);
+      font: inherit; font-size: 13px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+    }
+    .m3-lang-chip:active { opacity: .82; }
+
+    /* ---------- Content ---------- */
+    .view { flex: 1 1 auto; padding: 16px 16px 104px; }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: calc(28px * var(--scale)); font-weight: 400; line-height: 1.2;
+      letter-spacing: -0.01em; color: var(--md-ink);
+    }
+    .lead { margin: 0 0 16px; font-size: calc(14px * var(--scale)); color: var(--md-muted); }
+
+    /* Material 3 Search Bar */
+    .m3-search {
+      display: flex; align-items: center; gap: 12px;
+      height: 48px; padding: 0 14px 0 16px;
+      border-radius: 24px;
+      background: var(--md-surface-high);
+      box-shadow: var(--elev-1);
+      margin-bottom: 14px;
+    }
+    .m3-search input {
+      flex: 1; border: 0; background: transparent; color: var(--md-ink);
+      font: inherit; font-size: 16px; outline: none; min-width: 0;
+    }
+    .m3-search input::placeholder { color: var(--md-muted); }
+    .m3-search-clear {
+      width: 28px; height: 28px; border-radius: 14px; border: 0;
+      background: transparent; color: var(--md-muted);
+      display: none; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .m3-search-clear.visible { display: inline-flex; }
+
+    /* Material 3 Filter Chips */
+    .m3-chips {
+      display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+      margin: 0 -16px 16px; padding: 2px 16px;
+    }
+    .m3-chips::-webkit-scrollbar { display: none; }
+    .m3-chip {
+      flex: 0 0 auto; height: 32px; padding: 0 14px; border-radius: 8px;
+      border: 1px solid var(--md-outline-variant);
+      background: transparent; color: var(--md-muted);
+      font: inherit; font-size: 13.5px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .m3-chip.is-active {
+      background: var(--md-secondary-container);
+      color: var(--md-on-secondary-container);
+      border-color: transparent;
+    }
+
+    /* Material 3 Tonal Cards Grid */
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .m3-card {
+      display: flex; flex-direction: column; gap: 10px;
+      text-align: left; padding: 14px;
+      background: var(--md-surface-high);
+      border: 0;
+      box-shadow: var(--elev-1);
+      border-radius: 16px;
+      color: inherit; font: inherit; cursor: pointer;
+      transition: background-color .15s ease, transform .12s ease;
+      min-height: 112px;
+    }
+    .m3-card:active { transform: scale(.98); background: var(--md-surface-container); }
+
+    .tile-icon {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .tile-icon svg { width: 20px; height: 20px; }
+    .tile-title { font-size: calc(15px * var(--scale)); font-weight: 500; line-height: 1.25; }
+    .tile-hint { font-size: calc(12.5px * var(--scale)); line-height: 1.3; color: var(--md-muted); margin-top: 2px; }
+
+    /* Tonal Banner */
+    .m3-banner {
+      margin-top: 16px; padding: 14px 16px; border-radius: 16px;
+      background: var(--md-primary-container); color: var(--md-on-primary-container);
+      font-size: calc(13.5px * var(--scale)); line-height: 1.4;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .m3-banner svg { flex-shrink: 0; margin-top: 2px; }
+
+    /* Detail Hero & Assist Chips */
+    .hero { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .hero .tile-icon { width: 48px; height: 48px; border-radius: 14px; }
+    .hero-title { margin: 0; font-size: calc(22px * var(--scale)); font-weight: 500; }
+    .hero-sub { margin: 2px 0 0; font-size: calc(13.5px * var(--scale)); color: var(--md-muted); }
+
+    .map-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .m3-assist-chip {
+      height: 36px; padding: 0 14px; border-radius: 8px;
+      border: 1px solid var(--md-outline-variant);
+      background: var(--md-surface-high); color: var(--md-primary);
+      font: inherit; font-size: 13.5px; font-weight: 500; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    }
+    .m3-assist-chip.filled {
+      background: var(--md-primary); color: var(--md-on-primary); border-color: transparent;
+    }
+
+    /* Phrase Cards List (Material 3 List Items) */
+    .phrase-list { display: grid; gap: 10px; }
+    .m3-phrase-card {
+      width: 100%; text-align: left; padding: 14px 16px;
+      border-radius: 16px; border: 0;
+      background: var(--md-surface-high); box-shadow: var(--elev-1);
+      color: inherit; font: inherit; cursor: pointer;
+      display: grid; gap: 4px;
+      transition: background-color .15s ease;
+    }
+    .m3-phrase-card:active { background: var(--md-surface-container); }
+    .phrase-ru { font-size: calc(13px * var(--scale)); color: var(--md-muted); }
+    .phrase-main { font-size: calc(18px * var(--scale)); font-weight: 500; line-height: 1.3; }
+    .phrase-tr { font-size: calc(13.5px * var(--scale)); color: var(--md-primary); font-weight: 500; }
+    .phrase-lat { font-size: calc(12.5px * var(--scale)); color: var(--md-muted); font-style: italic; }
+
+    /* Material 3 Outlined Text Fields */
+    .m3-form { display: grid; gap: 12px; margin-bottom: 16px; }
+    .m3-field {
+      position: relative;
+      border: 1px solid var(--md-outline);
+      border-radius: 12px;
+      padding: 8px 14px;
+      background: var(--md-surface-high);
+      transition: border-color .15s ease;
+    }
+    .m3-field:focus-within { border-color: var(--md-primary); border-width: 2px; padding: 7px 13px; }
+    .m3-field label {
+      display: block; font-size: 12px; color: var(--md-muted); font-weight: 500; margin-bottom: 2px;
+    }
+    .m3-field:focus-within label { color: var(--md-primary); }
+    .m3-field input {
+      width: 100%; border: 0; background: transparent; color: var(--md-ink);
+      font: inherit; font-size: calc(16px * var(--scale)); outline: none;
+    }
+
+    .btn-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .m3-btn {
+      flex: 1; height: 44px; border-radius: 22px; border: 0;
+      font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .m3-btn-filled { background: var(--md-primary); color: var(--md-on-primary); }
+    .m3-btn-tonal { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+
+    /* Medical Preview Card */
+    .m3-preview-card {
+      background: var(--md-surface-high); border-radius: 16px;
+      border: 0; box-shadow: var(--elev-1); overflow: hidden;
+    }
+    .m3-preview-head {
+      padding: 12px 16px; background: var(--md-tertiary-container);
+      color: var(--md-on-tertiary-container);
+      font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .m3-kv-row {
+      display: flex; justify-content: space-between; gap: 16px;
+      padding: 12px 16px; border-top: 1px solid var(--md-outline-variant);
+      font-size: calc(14.5px * var(--scale));
+    }
+    .m3-kv-row:first-child { border-top: 0; }
+    .m3-kv-row dt { color: var(--md-muted); }
+    .m3-kv-row dd { margin: 0; font-weight: 500; text-align: right; }
+
+    /* Settings */
+    .m3-section-title {
+      margin: 20px 4px 8px; font-size: 13px; font-weight: 500;
+      color: var(--md-primary); letter-spacing: .01em;
+    }
+    .m3-list-card {
+      background: var(--md-surface-high); border-radius: 16px;
+      border: 0; box-shadow: var(--elev-1); overflow: hidden;
+    }
+    .m3-list-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 16px; min-height: 56px;
+      border-top: 1px solid var(--md-outline-variant);
+      width: 100%; background: transparent; border-left: 0; border-right: 0; border-bottom: 0;
+      color: inherit; font: inherit; text-align: left;
+    }
+    .m3-list-item:first-child { border-top: 0; }
+    .m3-list-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .m3-list-sub { font-size: 12.5px; color: var(--md-muted); font-family: var(--mono); word-break: break-all; }
+
+    /* Material 3 Switch */
+    .m3-switch {
+      width: 52px; height: 32px; border-radius: 16px;
+      border: 2px solid var(--md-outline); background: var(--md-surface-container);
+      position: relative; cursor: pointer; padding: 0; flex-shrink: 0;
+      transition: background-color .2s ease, border-color .2s ease;
+    }
+    .m3-switch::after {
+      content: ""; position: absolute; top: 6px; left: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--md-outline); transition: transform .2s ease, width .2s ease, height .2s ease, top .2s ease;
+    }
+    .m3-switch[aria-checked="true"] { background: var(--md-primary); border-color: var(--md-primary); }
+    .m3-switch[aria-checked="true"]::after {
+      width: 24px; height: 24px; top: 2px;
+      background: var(--md-on-primary); transform: translateX(18px);
+    }
+
+    /* Material 3 Navigation Bar (Bottom) */
+    .m3-navbar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+      max-width: 412px; margin: 0 auto; height: 80px;
+      background: var(--md-surface-container);
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      padding: 10px 8px 12px;
+    }
+    .m3-nav-item {
+      border: 0; background: none; color: var(--md-muted);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .m3-nav-pill {
+      width: 64px; height: 32px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background-color .2s ease;
+    }
+    .m3-nav-item.is-active { color: var(--md-ink); font-weight: 600; }
+    .m3-nav-item.is-active .m3-nav-pill {
+      background: var(--md-secondary-container); color: var(--md-on-secondary-container);
+    }
+
+    /* Material 3 Bottom Sheet */
+    .sheet { position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center; }
+    .sheet[hidden] { display: none; }
+    .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+    .sheet-panel {
+      position: relative; width: 100%; max-width: 412px; max-height: 82dvh; overflow: auto;
+      background: var(--md-surface-high); border-radius: 28px 28px 0 0;
+      padding: 12px 16px 28px; box-shadow: var(--elev-3);
+      animation: slideUp .22s cubic-bezier(.2, .85, .3, 1);
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .m3-drag-handle { width: 32px; height: 4px; border-radius: 2px; background: var(--md-outline); opacity: .45; margin: 0 auto 14px; }
+    .sheet-title { font-size: 18px; font-weight: 500; margin-bottom: 8px; padding: 0 4px; }
+    .sheet-section { padding: 12px 4px 6px; font-size: 12px; font-weight: 600; color: var(--md-primary); text-transform: uppercase; }
+    .lang-item {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border: 0; background: transparent; color: inherit; font: inherit;
+      border-radius: 12px; cursor: pointer; text-align: left;
+    }
+    .lang-item.is-active { background: var(--md-secondary-container); color: var(--md-on-secondary-container); font-weight: 600; }
+
+    .overlay {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+      background: rgba(0,0,0,.5);
+    }
+    .overlay[hidden] { display: none; }
+    .overlay-sheet {
+      width: 100%; max-width: 412px; min-height: 42vh;
+      background: var(--md-surface-high); color: var(--md-ink);
+      border-radius: 28px 28px 0 0; padding: 12px 24px 36px;
+      box-shadow: var(--elev-3); animation: slideUp .22s cubic-bezier(.2, .85, .3, 1);
+    }
+    .overlay-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .overlay-hint { font-size: 12px; font-weight: 500; color: var(--md-muted); }
+    .overlay-body { font-size: clamp(24px, 7vw, 34px); font-weight: 500; line-height: 1.25; }
+    .overlay-sub { display: block; margin-top: 14px; font-size: 15px; color: var(--md-muted); line-height: 1.45; }
+    .overlay-tr { color: var(--md-primary); font-weight: 500; }
+    .ov-lat { font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="m3-topbar">
+      <div class="m3-nav-left">
+        <div id="navLeft"></div>
+        <div class="m3-title-wrap">
+          <div class="m3-title" id="appTitle">Разговорник</div>
+          <div class="m3-subtitle" id="appSub">медицинский · 112</div>
+        </div>
+      </div>
+      <div class="m3-actions">
+        <button class="m3-lang-chip" id="langBtn" type="button">
+          <span id="langCode">RU → SR</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+        </button>
+        <button class="m3-icon-btn" id="fontBtn" type="button" aria-pressed="false" title="Размер текста">А+</button>
+      </div>
+    </header>
+
+    <main class="view" id="view"></main>
+
+    <nav class="m3-navbar" aria-label="Навигация">
+      <button class="m3-nav-item is-active" data-tab="situations" type="button">
+        <span class="m3-nav-pill">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
+        </span>
+        <span data-tab-label="tabSit">Ситуации</span>
+      </button>
+      <button class="m3-nav-item" data-tab="card" type="button">
+        <span class="m3-nav-pill">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </span>
+        <span data-tab-label="tabCard">Моя карточка</span>
+      </button>
+      <button class="m3-nav-item" data-tab="settings" type="button">
+        <span class="m3-nav-pill">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        </span>
+        <span data-tab-label="tabSettings">Настройки</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="sheet" id="langSheet" hidden>
+    <div class="sheet-backdrop" data-close-sheet></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true">
+      <div class="m3-drag-handle"></div>
+      <div class="sheet-title" id="sheetTitle">Язык</div>
+      <div id="langList"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="overlay-sheet" id="overlaySheet">
+      <div class="m3-drag-handle"></div>
+      <div class="overlay-top">
+        <span class="overlay-hint" id="overlayHint">Нажмите вне окна, чтобы закрыть</span>
+        <button class="m3-icon-btn" id="overlayClose" type="button" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="overlay-body" id="overlayBody"></div>
+    </div>
+  </div>
+
+  <script>
+
+window.PHRASEBOOK = {
+  version: "0.3.0",
+  updated: "2026-11-16",
+  languages: {
+    sr: { label: "Сербский", native: "Srpski", code: "sr-Latn" }
+  },
+  situations: [
+    {
+      id: "emergency",
+      icon: "🚨",
+      title: "Экстренная помощь",
+      hint: "Скорая, врач, сильная боль",
+      phrases: [
+        { ru: "Помогите!", sr: "Pomozite!" },
+        { ru: "Вызовите скорую!", sr: "Pozovite hitnu pomoć!" },
+        { ru: "Мне нужен врач.", sr: "Potreban mi je lekar." },
+        { ru: "У меня сильная боль.", sr: "Imam jak bol." },
+        { ru: "Я не говорю по-сербски.", sr: "Ne govorim srpski." },
+        { ru: "Вот моя карточка здоровья.", sr: "Ovo je moja zdravstvena kartica." }
+      ]
+    },
+    {
+      id: "pharmacy",
+      icon: "💊",
+      title: "В аптеке",
+      hint: "Купить лекарство, спросить наличие",
+      phrases: [
+        { ru: "Мне нужно лекарство от боли.", sr: "Treba mi lek protiv bolova." },
+        { ru: "У вас есть это лекарство?", sr: "Da li imate ovaj lek?" },
+        { ru: "Мне нужен препарат с этим веществом.", sr: "Treba mi lek sa ovom aktivnom supstancom." },
+        { ru: "Это без рецепта?", sr: "Da li je to bez recepta?" },
+        { ru: "Мне нужен рецепт?", sr: "Da li mi treba recept?" },
+        { ru: "Сколько это стоит?", sr: "Koliko to košta?" }
+      ]
+    },
+    {
+      id: "doctor",
+      icon: "🩺",
+      title: "У врача",
+      hint: "Приём, жалобы, история",
+      phrases: [
+        { ru: "Я записан на приём.", sr: "Imam zakazano." },
+        { ru: "Мне плохо.", sr: "Loše mi je." },
+        { ru: "Это началось три дня назад.", sr: "To je počelo pre tri dana." },
+        { ru: "У меня температура.", sr: "Imam temperaturu." },
+        { ru: "У меня аллергия на пенициллин.", sr: "Alergičan sam na penicilin." },
+        { ru: "Я принимаю эти лекарства.", sr: "Uzimam ove lekove." }
+      ]
+    },
+    {
+      id: "pain",
+      icon: "⚡",
+      title: "Боль",
+      hint: "Где, какая, насколько сильно",
+      phrases: [
+        { ru: "Здесь болит.", sr: "Boli me ovde." },
+        { ru: "Боль острая.", sr: "Bol je oštar." },
+        { ru: "Боль усиливается ночью.", sr: "Bol se pojačava noću." },
+        { ru: "По шкале от одного до десяти — это восемь.", sr: "Na skali od jedan do deset — osam." }
+      ]
+    },
+    {
+      id: "fever",
+      icon: "🌡️",
+      title: "Температура и простуда",
+      hint: "Жар, горло, кашель",
+      phrases: [
+        { ru: "У меня высокая температура.", sr: "Imam visoku temperaturu." },
+        { ru: "Болит горло.", sr: "Boli me grlo." },
+        { ru: "Заложен нос.", sr: "Zapušen mi je nos." },
+        { ru: "У меня кашель.", sr: "Kašljem." }
+      ]
+    },
+    {
+      id: "stomach",
+      icon: "🌀",
+      title: "Живот",
+      hint: "Тошнота, боль, расстройство",
+      phrases: [
+        { ru: "Болит живот.", sr: "Boli me stomak." },
+        { ru: "Меня тошнит.", sr: "Muka mi je." },
+        { ru: "Была рвота.", sr: "Povraćao sam." },
+        { ru: "У меня понос.", sr: "Imam dijareju." },
+        { ru: "Нет аппетита.", sr: "Nemam apetit." }
+      ]
+    },
+    {
+      id: "allergy",
+      icon: "🌿",
+      title: "Аллергия",
+      hint: "Сыпь, отёк, трудно дышать",
+      phrases: [
+        { ru: "У меня аллергия.", sr: "Imam alergiju." },
+        { ru: "У меня сыпь.", sr: "Imam osip." },
+        { ru: "Мне трудно дышать.", sr: "Teško dišem." },
+        { ru: "Аллергия на орехи.", sr: "Alergičan sam na orašaste plodove." },
+        { ru: "Аллергия на лактозу.", sr: "Alergičan sam na laktozu." }
+      ]
+    },
+    {
+      id: "head",
+      icon: "🤕",
+      title: "Голова",
+      hint: "Мигрень, головокружение",
+      phrases: [
+        { ru: "Болит голова.", sr: "Boli me glava." },
+        { ru: "У меня мигрень.", sr: "Imam migrenu." },
+        { ru: "Кружится голова.", sr: "Vrti mi se u glavi." }
+      ]
+    },
+    {
+      id: "chronic",
+      icon: "📋",
+      title: "Постоянные лекарства",
+      hint: "Продлить рецепт, найти своё",
+      phrases: [
+        { ru: "Я принимаю это каждый день.", sr: "Uzimam ovo svakog dana." },
+        { ru: "Мне нужно продлить рецепт.", sr: "Treba mi produženje recepta." },
+        { ru: "У меня закончились таблетки.", sr: "Ostao sam bez tableta." },
+        { ru: "Это мой препарат, вот упаковка.", sr: "Ovo je moj lek, evo pakovanja." }
+      ]
+    },
+    {
+      id: "pregnancy",
+      icon: "🤰",
+      title: "Беременность",
+      hint: "Срок, безопасность лекарств",
+      phrases: [
+        { ru: "Я беременна.", sr: "Trudna sam." },
+        { ru: "Срок — три месяца.", sr: "Trudna sam tri meseca." },
+        { ru: "Можно ли это принимать при беременности?", sr: "Da li se ovo može uzimati u trudnoći?" }
+      ]
+    },
+    {
+      id: "child",
+      icon: "🧒",
+      title: "Ребёнок",
+      hint: "Возраст, жар, помощь",
+      phrases: [
+        { ru: "Это мой ребёнок.", sr: "Ovo je moje dete." },
+        { ru: "Ему четыре года.", sr: "Ima četiri godine." },
+        { ru: "У ребёнка температура.", sr: "Dete ima temperaturu." }
+      ]
+    },
+    {
+      id: "mental",
+      icon: "🧠",
+      title: "Психическое состояние",
+      hint: "Тревога, паника",
+      phrases: [
+        { ru: "У меня паническая атака.", sr: "Imam napad panike." },
+        { ru: "Мне тревожно.", sr: "Anksiozan sam." },
+        { ru: "Мне нужен психолог.", sr: "Potreban mi je psiholog." }
+      ]
+    },
+    {
+      id: "injury",
+      icon: "🩹",
+      title: "Травма",
+      hint: "Падение, кровотечение, перелом",
+      phrases: [
+        { ru: "Я упал.", sr: "Pao sam." },
+        { ru: "Не могу двигать рукой.", sr: "Ne mogu da pomerim ruku." },
+        { ru: "У меня кровотечение.", sr: "Krvarim." }
+      ]
+    },
+    {
+      id: "dentist",
+      icon: "🦷",
+      title: "Стоматология",
+      hint: "Острая зубная боль",
+      phrases: [
+        { ru: "Болит зуб.", sr: "Boli me zub." },
+        { ru: "Нужна срочная помощь.", sr: "Potrebna mi je hitna pomoć." },
+        { ru: "Сломался зуб.", sr: "Zub mi je slomljen." }
+      ]
+    },
+    {
+      id: "payment",
+      icon: "💳",
+      title: "Оплата и страховка",
+      hint: "Счёт, карта, документы",
+      phrases: [
+        { ru: "У меня есть страховка.", sr: "Imam osiguranje." },
+        { ru: "Я плачу сам.", sr: "Plaćam sam." },
+        { ru: "Можно оплатить картой?", sr: "Može li karticom?" },
+        { ru: "Дайте, пожалуйста, чек.", sr: "Molim Vas, račun." }
+      ]
+    },
+    {
+      id: "understand",
+      icon: "💬",
+      title: "Не понимаю",
+      hint: "Спасательные фразы",
+      phrases: [
+        { ru: "Я не понимаю.", sr: "Ne razumem." },
+        { ru: "Говорите, пожалуйста, медленнее.", sr: "Molim Vas, govorite sporije." },
+        { ru: "Напишите, пожалуйста.", sr: "Molim Vas, napišite." },
+        { ru: "Можно переводчика?", sr: "Može li prevodilac?" }
+      ]
+    }    ,
+    {
+      id: "police",
+      icon: "🚓",
+      title: "Полиция и 112",
+      hint: "ДТП, кража, документы",
+      phrases: [
+        { ru: "Вызовите полицию!", sr: "Pozovite policiju!" },
+        { ru: "У меня украли документы и телефон.", sr: "Ukrali su mi dokumenta i telefon." },
+        { ru: "Произошло ДТП, нужна помощь.", sr: "Desila se saobraćajna nesreća, potrebna je pomoć." },
+        { ru: "Мне нужен протокол для страховой.", sr: "Treba mi zapisnik za osiguranje." }
+      ]
+    },
+    {
+      id: "bites",
+      icon: "🐝",
+      title: "Укусы и ожоги",
+      hint: "Животные, насекомые, солнце",
+      phrases: [
+        { ru: "Меня укусило животное.", sr: "Ujela me je životinja." },
+        { ru: "Меня ужалило насекомое или медуза.", sr: "Ubo me je insekt ili me je opekla meduza." },
+        { ru: "У меня сильный ожог.", sr: "Imam jaku opekotinu." },
+        { ru: "Нужна ли прививка от столбняка или бешенства?", sr: "Da li mi treba vakcina protiv tetanusa ili besnila?" }
+      ]
+    }    ,
+    {
+      id: "hike",
+      icon: "🥾",
+      title: "В походе и в горах",
+      hint: "Вода, связь, дорога, помощь",
+      phrases: [
+        { ru: "Я заблудился, помогите выйти к дороге.", sr: "Izgubio sam se, pomozite mi da izađem na put." },
+        { ru: "Дайте, пожалуйста, воды.", sr: "Molim Vas, dajte mi vode." },
+        { ru: "Мне нужно позвонить или зарядить телефон.", sr: "Treba mi da telefoniram ili napunim telefon." },
+        { ru: "Я не могу идти дальше, нужна помощь.", sr: "Ne mogu dalje da hodam, potrebna mi je pomoć." },
+        { ru: "Где ближайшая деревня или остановка?", sr: "Gde je najbliže selo ili stanica?" }
+      ]
+    }    ,
+    {
+      id: "travel",
+      icon: "⛴️",
+      title: "На воде и в полёте",
+      hint: "Укачивание, уши, помощь экипажа",
+      phrases: [
+        { ru: "Меня сильно укачивает, дайте воды или пакет.", sr: "Imam jaku mučninu od vožnje, dajte mi vodu ili kesu." },
+        { ru: "Позовите, пожалуйста, бортпроводника или экипаж.", sr: "Molim Vas, pozovite stjuardesu ili posadu." },
+        { ru: "Есть ли на борту врач или аптечка?", sr: "Da li na brodu ili u avionu ima lekar ili prva pomoć?" },
+        { ru: "У меня сильно заложило и болят уши.", sr: "Jako su mi zapušene i bole me uši." },
+        { ru: "Мне понадобится медицинская помощь по прибытии.", sr: "Trebaće mi medicinska pomoć po dolasku." }
+      ]
+    }
+  ]
+};
+
+/* Переводы фраз. Ключ — id ситуации, порядок совпадает с data.js.
+   Сербский (sr) остаётся в data.js. Если перевода нет — показывается сербский.
+   Это черновик: тайский, вьетнамский и китайский требуют вычитки носителями. */
+
+/* Список языков: переопределяем объект из data.js на массив. */
+window.PHRASEBOOK.languages = [
+  { code: "sr", native: "Srpski", ru: "Сербский" },
+  { code: "en", native: "English", ru: "Английский" },
+  { code: "es", native: "Español", ru: "Испанский" },
+  { code: "fr", native: "Français", ru: "Французский" },
+  { code: "pl", native: "Polski", ru: "Польский" },
+  { code: "de", native: "Deutsch", ru: "Немецкий" },
+  { code: "el", native: "Ελληνικά", ru: "Греческий" },
+  { code: "tr", native: "Türkçe", ru: "Турецкий" },
+  { code: "vi", native: "Tiếng Việt", ru: "Вьетнамский" },
+  { code: "th", native: "ไทย", ru: "Тайский" },
+  { code: "id", native: "Bahasa Indonesia", ru: "Индонезийский" },
+  { code: "zh", native: "中文", ru: "Китайский" }
+];
+
+window.LANGS = {
+  emergency: [
+    { en: "Help!", es: "¡Ayuda!", fr: "À l'aide !", pl: "Pomocy!", de: "Hilfe!", el: "Βοήθεια!", tr: "Yardım edin!", vi: "Cứu tôi với!", th: "ช่วยด้วย!", id: "Tolong!", zh: "救命！" },
+    { en: "Call an ambulance!", es: "¡Llame a una ambulancia!", fr: "Appelez une ambulance !", pl: "Proszę wezwać karetkę!", de: "Rufen Sie einen Krankenwagen!", el: "Καλέστε ασθενοφόρο!", tr: "Ambulans çağırın!", vi: "Gọi xe cứu thương!", th: "เรียกรถพยาบาลด้วย!", id: "Panggil ambulans!", zh: "请叫救护车！" },
+    { en: "I need a doctor.", es: "Necesito un médico.", fr: "J'ai besoin d'un médecin.", pl: "Potrzebuję lekarza.", de: "Ich brauche einen Arzt.", el: "Χρειάζομαι γιατρό.", tr: "Bir doktora ihtiyacım var.", vi: "Tôi cần bác sĩ.", th: "ฉันต้องการหมอ", id: "Saya butuh dokter.", zh: "我需要医生。" },
+    { en: "I'm in severe pain.", es: "Tengo un dolor muy fuerte.", fr: "J'ai très mal.", pl: "Mam silny ból.", de: "Ich habe starke Schmerzen.", el: "Έχω πολύ πόνο.", tr: "Şiddetli ağrım var.", vi: "Tôi bị đau dữ dội.", th: "ฉันเจ็บปวดมาก", id: "Saya nyeri sekali.", zh: "我疼得很厉害。" },
+    { en: "I don't speak the local language.", es: "No hablo el idioma local.", fr: "Je ne parle pas la langue locale.", pl: "Nie mówię w miejscowym języku.", de: "Ich spreche die Landessprache nicht.", el: "Δεν μιλάω τη γλώσσα της χώρας.", tr: "Yerel dili konuşmuyorum.", vi: "Tôi không nói được tiếng địa phương.", th: "ฉันพูดภาษาท้องถิ่นไม่ได้", id: "Saya tidak bisa bahasa setempat.", zh: "我不会说当地语言。" },
+    { en: "This is my health card.", es: "Esta es mi tarjeta de salud.", fr: "Voici ma carte de santé.", pl: "To jest moja karta zdrowia.", de: "Das ist meine Gesundheitskarte.", el: "Αυτή είναι η κάρτα υγείας μου.", tr: "Bu benim sağlık kartım.", vi: "Đây là thẻ sức khỏe của tôi.", th: "นี่คือบัตรสุขภาพของฉัน", id: "Ini kartu kesehatan saya.", zh: "这是我的健康卡。" }
+  ],
+  pharmacy: [
+    { en: "I need a painkiller.", es: "Necesito un analgésico.", fr: "J'ai besoin d'un antidouleur.", pl: "Potrzebuję leku przeciwbólowego.", de: "Ich brauche ein Schmerzmittel.", el: "Χρειάζομαι ένα παυσίπονο.", tr: "Bir ağrı kesiciye ihtiyacım var.", vi: "Tôi cần thuốc giảm đau.", th: "ฉันต้องการยาแก้ปวด", id: "Saya butuh obat pereda nyeri.", zh: "我需要止痛药。" },
+    { en: "Do you have this medicine?", es: "¿Tiene este medicamento?", fr: "Avez-vous ce médicament ?", pl: "Czy ma Pan/Pani to lekarstwo?", de: "Haben Sie dieses Medikament?", el: "Έχετε αυτό το φάρμακο;", tr: "Bu ilaç sizde var mı?", vi: "Bạn có loại thuốc này không?", th: "คุณมียาตัวนี้ไหม", id: "Apakah Anda punya obat ini?", zh: "你们有这种药吗？" },
+    { en: "I need a medicine with this active ingredient.", es: "Necesito un medicamento con este principio activo.", fr: "J'ai besoin d'un médicament avec cette substance active.", pl: "Potrzebuję leku z tą substancją czynną.", de: "Ich brauche ein Medikament mit diesem Wirkstoff.", el: "Χρειάζομαι φάρμακο με αυτή τη δραστική ουσία.", tr: "Bu etken maddeyi içeren bir ilaç arıyorum.", vi: "Tôi cần thuốc có hoạt chất này.", th: "ฉันต้องการยาที่มีสารออกฤทธิ์นี้", id: "Saya butuh obat dengan zat aktif ini.", zh: "我需要含这种有效成分的药。" },
+    { en: "Is it available without a prescription?", es: "¿Se vende sin receta?", fr: "Est-ce disponible sans ordonnance ?", pl: "Czy jest dostępne bez recepty?", de: "Gibt es das rezeptfrei?", el: "Διατίθεται χωρίς συνταγή;", tr: "Reçetesiz alınabilir mi?", vi: "Có bán không cần đơn không?", th: "ซื้อได้โดยไม่ต้องมีใบสั่งยาไหม", id: "Apakah bisa dibeli tanpa resep?", zh: "这个不用处方能买吗？" },
+    { en: "Do I need a prescription?", es: "¿Necesito receta?", fr: "Ai-je besoin d'une ordonnance ?", pl: "Czy potrzebuję recepty?", de: "Brauche ich ein Rezept?", el: "Χρειάζομαι συνταγή;", tr: "Reçeteye ihtiyacım var mı?", vi: "Tôi có cần đơn thuốc không?", th: "ฉันต้องมีใบสั่งยาไหม", id: "Apakah saya perlu resep?", zh: "我需要处方吗？" },
+    { en: "How much does it cost?", es: "¿Cuánto cuesta?", fr: "Combien ça coûte ?", pl: "Ile to kosztuje?", de: "Was kostet das?", el: "Πόσο κάνει;", tr: "Ne kadar?", vi: "Giá bao nhiêu?", th: "ราคาเท่าไหร่", id: "Berapa harganya?", zh: "多少钱？" }
+  ],
+  doctor: [
+    { en: "I have an appointment.", es: "Tengo cita.", fr: "J'ai rendez-vous.", pl: "Mam wizytę.", de: "Ich habe einen Termin.", el: "Έχω ραντεβού.", tr: "Randevum var.", vi: "Tôi có hẹn.", th: "ฉันมีนัด", id: "Saya ada janji.", zh: "我预约了。" },
+    { en: "I feel unwell.", es: "No me siento bien.", fr: "Je ne me sens pas bien.", pl: "Źle się czuję.", de: "Mir geht es nicht gut.", el: "Δεν αισθάνομαι καλά.", tr: "Kendimi kötü hissediyorum.", vi: "Tôi thấy không khỏe.", th: "ฉันรู้สึกไม่สบาย", id: "Saya merasa tidak enak badan.", zh: "我不舒服。" },
+    { en: "It started three days ago.", es: "Empezó hace tres días.", fr: "Ça a commencé il y a trois jours.", pl: "Zaczęło się trzy dni temu.", de: "Es hat vor drei Tagen angefangen.", el: "Ξεκίνησε πριν από τρεις μέρες.", tr: "Üç gün önce başladı.", vi: "Nó bắt đầu ba ngày trước.", th: "เริ่มมาเมื่อสามวันก่อน", id: "Mulai tiga hari yang lalu.", zh: "三天前开始的。" },
+    { en: "I have a fever.", es: "Tengo fiebre.", fr: "J'ai de la fièvre.", pl: "Mam gorączkę.", de: "Ich habe Fieber.", el: "Έχω πυρετό.", tr: "Ateşim var.", vi: "Tôi bị sốt.", th: "ฉันมีไข้", id: "Saya demam.", zh: "我发烧了。" },
+    { en: "I'm allergic to penicillin.", es: "Soy alérgico a la penicilina.", fr: "Je suis allergique à la pénicilline.", pl: "Mam alergię na penicylinę.", de: "Ich bin allergisch gegen Penicillin.", el: "Είμαι αλλεργικός στην πενικιλίνη.", tr: "Penisiline alerjim var.", vi: "Tôi dị ứng với penicillin.", th: "ฉันแพ้ยาเพนิซิลลิน", id: "Saya alergi penisilin.", zh: "我对青霉素过敏。" },
+    { en: "I take these medicines.", es: "Tomo estos medicamentos.", fr: "Je prends ces médicaments.", pl: "Przyjmuję te leki.", de: "Ich nehme diese Medikamente.", el: "Παίρνω αυτά τα φάρμακα.", tr: "Bu ilaçları kullanıyorum.", vi: "Tôi đang dùng những thuốc này.", th: "ฉันกินยาพวกนี้", id: "Saya mengonsumsi obat-obat ini.", zh: "我在服用这些药。" }
+  ],
+  pain: [
+    { en: "It hurts here.", es: "Me duele aquí.", fr: "Ça me fait mal ici.", pl: "Boli mnie tutaj.", de: "Es tut hier weh.", el: "Πονάει εδώ.", tr: "Burası ağrıyor.", vi: "Đau ở đây.", th: "เจ็บตรงนี้", id: "Sakit di sini.", zh: "这里疼。" },
+    { en: "The pain is sharp.", es: "El dolor es agudo.", fr: "La douleur est vive.", pl: "Ból jest ostry.", de: "Der Schmerz ist stechend.", el: "Ο πόνος είναι οξύς.", tr: "Ağrı keskin.", vi: "Đau nhói.", th: "เจ็บแบบเสียด", id: "Nyerinya tajam.", zh: "是刺痛。" },
+    { en: "The pain gets worse at night.", es: "El dolor empeora por la noche.", fr: "La douleur s'aggrave la nuit.", pl: "Ból nasila się w nocy.", de: "Nachts werden die Schmerzen schlimmer.", el: "Ο πόνος χειροτερεύει το βράδυ.", tr: "Ağrı geceleri artıyor.", vi: "Đau nặng hơn về đêm.", th: "กลางคืนปวดมากขึ้น", id: "Nyerinya makin parah malam.", zh: "晚上更疼。" },
+    { en: "On a scale from one to ten, it's eight.", es: "En una escala del uno al diez, es ocho.", fr: "Sur une échelle de un à dix, c'est huit.", pl: "W skali od jednego do dziesięciu to osiem.", de: "Auf einer Skala von eins bis zehn ist es acht.", el: "Σε κλίμακα από ένα έως δέκα, είναι οκτώ.", tr: "Birden ona kadar, sekiz.", vi: "Trên thang điểm một đến mười, là tám.", th: "ให้คะแนนหนึ่งถึงสิบ คือแปด", id: "Dalam skala satu sampai sepuluh, delapan.", zh: "一到十分的话，是八分。" }
+  ],
+  fever: [
+    { en: "I have a high fever.", es: "Tengo mucha fiebre.", fr: "J'ai une forte fièvre.", pl: "Mam wysoką gorączkę.", de: "Ich habe hohes Fieber.", el: "Έχω υψηλό πυρετό.", tr: "Yüksek ateşim var.", vi: "Tôi sốt cao.", th: "ฉันมีไข้สูง", id: "Saya demam tinggi.", zh: "我发高烧。" },
+    { en: "My throat hurts.", es: "Me duele la garganta.", fr: "J'ai mal à la gorge.", pl: "Boli mnie gardło.", de: "Mein Hals tut weh.", el: "Πονάει ο λαιμός μου.", tr: "Boğazım ağrıyor.", vi: "Tôi đau họng.", th: "ฉันเจ็บคอ", id: "Tenggorokan saya sakit.", zh: "我喉咙痛。" },
+    { en: "My nose is blocked.", es: "Tengo la nariz tapada.", fr: "J'ai le nez bouché.", pl: "Mam zatkany nos.", de: "Meine Nase ist verstopft.", el: "Έχω βουλωμένη μύτη.", tr: "Burnum tıkalı.", vi: "Tôi bị nghẹt mũi.", th: "ฉันคัดจมูก", id: "Hidung saya tersumbat.", zh: "我鼻塞。" },
+    { en: "I have a cough.", es: "Tengo tos.", fr: "J'ai une toux.", pl: "Mam kaszel.", de: "Ich habe Husten.", el: "Έχω βήχα.", tr: "Öksürüğüm var.", vi: "Tôi bị ho.", th: "ฉันไอ", id: "Saya batuk.", zh: "我咳嗽。" }
+  ],
+  stomach: [
+    { en: "My stomach hurts.", es: "Me duele el estómago.", fr: "J'ai mal au ventre.", pl: "Boli mnie brzuch.", de: "Mein Bauch tut weh.", el: "Πονάει η κοιλιά μου.", tr: "Karnım ağrıyor.", vi: "Tôi đau bụng.", th: "ฉันปวดท้อง", id: "Perut saya sakit.", zh: "我肚子疼。" },
+    { en: "I feel nauseous.", es: "Tengo náuseas.", fr: "J'ai des nausées.", pl: "Mam nudności.", de: "Mir ist übel.", el: "Έχω ναυτία.", tr: "Midem bulanıyor.", vi: "Tôi thấy buồn nôn.", th: "ฉันคลื่นไส้", id: "Saya mual.", zh: "我想吐。" },
+    { en: "I vomited.", es: "He vomitado.", fr: "J'ai vomi.", pl: "Wymiotowałem.", de: "Ich habe mich übergeben.", el: "Έκανα εμετό.", tr: "Kustum.", vi: "Tôi đã nôn.", th: "ฉันอาเจียน", id: "Saya muntah.", zh: "我吐了。" },
+    { en: "I have diarrhoea.", es: "Tengo diarrea.", fr: "J'ai la diarrhée.", pl: "Mam biegunkę.", de: "Ich habe Durchfall.", el: "Έχω διάρροια.", tr: "İshal oldum.", vi: "Tôi bị tiêu chảy.", th: "ฉันท้องเสีย", id: "Saya diare.", zh: "我拉肚子。" },
+    { en: "I have no appetite.", es: "No tengo apetito.", fr: "Je n'ai pas d'appétit.", pl: "Nie mam apetytu.", de: "Ich habe keinen Appetit.", el: "Δεν έχω όρεξη.", tr: "İştahım yok.", vi: "Tôi không có cảm giác thèm ăn.", th: "ฉันไม่เจริญอาหาร", id: "Saya tidak nafsu makan.", zh: "我没有胃口。" }
+  ],
+  allergy: [
+    { en: "I have an allergy.", es: "Tengo una alergia.", fr: "J'ai une allergie.", pl: "Mam alergię.", de: "Ich habe eine Allergie.", el: "Έχω αλλεργία.", tr: "Alerjim var.", vi: "Tôi bị dị ứng.", th: "ฉันมีอาการแพ้", id: "Saya punya alergi.", zh: "我有过敏。" },
+    { en: "I have a rash.", es: "Tengo un sarpullido.", fr: "J'ai une éruption cutanée.", pl: "Mam wysypkę.", de: "Ich habe einen Ausschlag.", el: "Έχω εξάνθημα.", tr: "Döküntüm var.", vi: "Tôi bị phát ban.", th: "ฉันมีผื่น", id: "Saya ada ruam.", zh: "我起疹子了。" },
+    { en: "I have trouble breathing.", es: "Me cuesta respirar.", fr: "J'ai du mal à respirer.", pl: "Mam trudności z oddychaniem.", de: "Ich habe Schwierigkeiten beim Atmen.", el: "Δυσκολεύομαι να αναπνεύσω.", tr: "Nefes almakta zorlanıyorum.", vi: "Tôi khó thở.", th: "ฉันหายใจลำบาก", id: "Saya sulit bernapas.", zh: "我呼吸困难。" },
+    { en: "I'm allergic to nuts.", es: "Soy alérgico a los frutos secos.", fr: "Je suis allergique aux noix.", pl: "Mam alergię na orzechy.", de: "Ich bin allergisch gegen Nüsse.", el: "Είμαι αλλεργικός στους ξηρούς καρπούς.", tr: "Kuruyemişe alerjim var.", vi: "Tôi dị ứng với hạt.", th: "ฉันแพ้ถั่ว", id: "Saya alergi kacang.", zh: "我对坚果过敏。" },
+    { en: "I'm lactose intolerant.", es: "Soy intolerante a la lactosa.", fr: "Je suis intolérant au lactose.", pl: "Mam nietolerancję laktozy.", de: "Ich bin laktoseintolerant.", el: "Έχω δυσανεξία στη λακτόζη.", tr: "Laktoz intoleransım var.", vi: "Tôi không dung nạp lactose.", th: "ฉันแพ้แลคโตส", id: "Saya intoleransi laktosa.", zh: "我乳糖不耐受。" }
+  ],
+  head: [
+    { en: "I have a headache.", es: "Me duele la cabeza.", fr: "J'ai mal à la tête.", pl: "Boli mnie głowa.", de: "Ich habe Kopfschmerzen.", el: "Έχω πονοκέφαλο.", tr: "Başım ağrıyor.", vi: "Tôi bị đau đầu.", th: "ฉันปวดหัว", id: "Saya sakit kepala.", zh: "我头疼。" },
+    { en: "I have a migraine.", es: "Tengo migraña.", fr: "J'ai une migraine.", pl: "Mam migrenę.", de: "Ich habe Migräne.", el: "Έχω ημικρανία.", tr: "Migrenim var.", vi: "Tôi bị đau nửa đầu.", th: "ฉันเป็นไมเกรน", id: "Saya migrain.", zh: "我偏头痛。" },
+    { en: "I feel dizzy.", es: "Estoy mareado.", fr: "J'ai des vertiges.", pl: "Kręci mi się w głowie.", de: "Mir ist schwindelig.", el: "Ζαλίζομαι.", tr: "Başım dönüyor.", vi: "Tôi bị chóng mặt.", th: "ฉันเวียนหัว", id: "Saya pusing.", zh: "我头晕。" }
+  ],
+  chronic: [
+    { en: "I take this every day.", es: "Tomo esto todos los días.", fr: "Je prends ça tous les jours.", pl: "Biorę to codziennie.", de: "Ich nehme das jeden Tag.", el: "Το παίρνω κάθε μέρα.", tr: "Bunu her gün alıyorum.", vi: "Tôi dùng cái này mỗi ngày.", th: "ฉันกินสิ่งนี้ทุกวัน", id: "Saya minum ini setiap hari.", zh: "我每天吃这个。" },
+    { en: "I need a repeat prescription.", es: "Necesito renovar la receta.", fr: "J'ai besoin d'un renouvellement d'ordonnance.", pl: "Potrzebuję powtórnej recepty.", de: "Ich brauche ein Folgerezept.", el: "Χρειάζομαι επανάληψη συνταγής.", tr: "Tekrar reçete gerekiyor.", vi: "Tôi cần kê lại đơn thuốc.", th: "ฉันต้องการใบสั่งยาต่อ", id: "Saya perlu resep ulang.", zh: "我需要续开处方。" },
+    { en: "I've run out of my tablets.", es: "Se me acabaron las pastillas.", fr: "Je n'ai plus de comprimés.", pl: "Skończyły mi się tabletki.", de: "Meine Tabletten sind alle.", el: "Μου τελείωσαν τα χάπια.", tr: "Tabletlerim bitti.", vi: "Tôi hết thuốc rồi.", th: "ยาเม็ดของฉันหมดแล้ว", id: "Tablet saya habis.", zh: "我的药吃完了。" },
+    { en: "This is my medicine, here is the package.", es: "Este es mi medicamento, aquí está el envase.", fr: "C'est mon médicament, voici l'emballage.", pl: "To moje lekarstwo, oto opakowanie.", de: "Das ist mein Medikament, hier ist die Packung.", el: "Αυτό είναι το φάρμακό μου, ορίστε η συσκευασία.", tr: "Bu benim ilacım, kutusu burada.", vi: "Đây là thuốc của tôi, đây là vỏ hộp.", th: "นี่คือยาของฉัน นี่คือกล่องยา", id: "Ini obat saya, ini kemasannya.", zh: "这是我的药，这是包装。" }
+  ],
+  pregnancy: [
+    { en: "I'm pregnant.", es: "Estoy embarazada.", fr: "Je suis enceinte.", pl: "Jestem w ciąży.", de: "Ich bin schwanger.", el: "Είμαι έγκυος.", tr: "Hamileyim.", vi: "Tôi đang mang thai.", th: "ฉันกำลังตั้งครรภ์", id: "Saya hamil.", zh: "我怀孕了。" },
+    { en: "I'm three months pregnant.", es: "Estoy embarazada de tres meses.", fr: "Je suis enceinte de trois mois.", pl: "Jestem w trzecim miesiącu ciąży.", de: "Ich bin im dritten Monat schwanger.", el: "Είμαι έγκυος τριών μηνών.", tr: "Üç aylık hamileyim.", vi: "Tôi mang thai ba tháng.", th: "ฉันตั้งครรภ์สามเดือน", id: "Saya hamil tiga bulan.", zh: "我怀孕三个月了。" },
+    { en: "Is this safe to take during pregnancy?", es: "¿Es seguro tomar esto durante el embarazo?", fr: "Est-ce sans danger pendant la grossesse ?", pl: "Czy to jest bezpieczne w ciąży?", de: "Ist das in der Schwangerschaft unbedenklich?", el: "Είναι ασφαλές αυτό στην εγκυμοσύνη;", tr: "Bu hamilelikte güvenli mi?", vi: "Thuốc này có an toàn khi mang thai không?", th: "ยานี้ปลอดภัยสำหรับคนท้องไหม", id: "Apakah ini aman saat hamil?", zh: "怀孕期间吃这个安全吗？" }
+  ],
+  child: [
+    { en: "This is my child.", es: "Este es mi hijo.", fr: "C'est mon enfant.", pl: "To moje dziecko.", de: "Das ist mein Kind.", el: "Αυτό είναι το παιδί μου.", tr: "Bu benim çocuğum.", vi: "Đây là con tôi.", th: "นี่คือลูกของฉัน", id: "Ini anak saya.", zh: "这是我的孩子。" },
+    { en: "He is four years old.", es: "Tiene cuatro años.", fr: "Il a quatre ans.", pl: "Ma cztery lata.", de: "Er ist vier Jahre alt.", el: "Είναι τεσσάρων ετών.", tr: "Dört yaşında.", vi: "Cháu bốn tuổi.", th: "เขาอายุสี่ขวบ", id: "Dia empat tahun.", zh: "他四岁。" },
+    { en: "My child has a fever.", es: "Mi hijo tiene fiebre.", fr: "Mon enfant a de la fièvre.", pl: "Moje dziecko ma gorączkę.", de: "Mein Kind hat Fieber.", el: "Το παιδί μου έχει πυρετό.", tr: "Çocuğumun ateşi var.", vi: "Con tôi bị sốt.", th: "ลูกของฉันมีไข้", id: "Anak saya demam.", zh: "我的孩子发烧了。" }
+  ],
+  mental: [
+    { en: "I'm having a panic attack.", es: "Tengo un ataque de pánico.", fr: "Je fais une crise de panique.", pl: "Mam atak paniki.", de: "Ich habe eine Panikattacke.", el: "Έχω κρίση πανικού.", tr: "Panik atak geçiriyorum.", vi: "Tôi đang bị hoảng loạn.", th: "ฉันกำลังมีอาการแพนิก", id: "Saya sedang panik.", zh: "我惊恐发作了。" },
+    { en: "I feel anxious.", es: "Tengo ansiedad.", fr: "Je suis anxieux.", pl: "Mam lęk.", de: "Ich bin ängstlich.", el: "Έχω άγχος.", tr: "Kaygılıyım.", vi: "Tôi lo lắng.", th: "ฉันรู้สึกวิตกกังวล", id: "Saya cemas.", zh: "我很焦虑。" },
+    { en: "I need a psychologist.", es: "Necesito un psicólogo.", fr: "J'ai besoin d'un psychologue.", pl: "Potrzebuję psychologa.", de: "Ich brauche einen Psychologen.", el: "Χρειάζομαι ψυχολόγο.", tr: "Bir psikologa ihtiyacım var.", vi: "Tôi cần chuyên gia tâm lý.", th: "ฉันต้องการนักจิตวิทยา", id: "Saya butuh psikolog.", zh: "我需要心理医生。" }
+  ],
+  injury: [
+    { en: "I fell.", es: "Me caí.", fr: "Je suis tombé.", pl: "Upadłem.", de: "Ich bin gefallen.", el: "Έπεσα.", tr: "Düştüm.", vi: "Tôi bị ngã.", th: "ฉันหกล้ม", id: "Saya terjatuh.", zh: "我摔倒了。" },
+    { en: "I can't move my arm.", es: "No puedo mover el brazo.", fr: "Je ne peux pas bouger le bras.", pl: "Nie mogę ruszać ręką.", de: "Ich kann meinen Arm nicht bewegen.", el: "Δεν μπορώ να κινήσω το χέρι μου.", tr: "Kolumu hareket ettiremiyorum.", vi: "Tôi không cử động được tay.", th: "ฉันขยับแขนไม่ได้", id: "Saya tidak bisa menggerakkan lengan.", zh: "我的胳膊动不了。" },
+    { en: "I'm bleeding.", es: "Estoy sangrando.", fr: "Je saigne.", pl: "Krwawię.", de: "Ich blute.", el: "Αιμορραγώ.", tr: "Kanıyorum.", vi: "Tôi đang chảy máu.", th: "ฉันมีเลือดออก", id: "Saya berdarah.", zh: "我在流血。" }
+  ],
+  dentist: [
+    { en: "I have a toothache.", es: "Me duele un diente.", fr: "J'ai mal aux dents.", pl: "Boli mnie ząb.", de: "Ich habe Zahnschmerzen.", el: "Πονάει το δόντι μου.", tr: "Dişim ağrıyor.", vi: "Tôi bị đau răng.", th: "ฉันปวดฟัน", id: "Gigi saya sakit.", zh: "我牙疼。" },
+    { en: "I need urgent help.", es: "Necesito ayuda urgente.", fr: "J'ai besoin d'aide urgente.", pl: "Potrzebuję pilnej pomocy.", de: "Ich brauche dringend Hilfe.", el: "Χρειάζομαι άμεση βοήθεια.", tr: "Acil yardıma ihtiyacım var.", vi: "Tôi cần giúp gấp.", th: "ฉันต้องการความช่วยเหลือด่วน", id: "Saya butuh bantuan darurat.", zh: "我需要紧急帮助。" },
+    { en: "My tooth is broken.", es: "Se me rompió un diente.", fr: "Ma dent est cassée.", pl: "Ząb mi się złamał.", de: "Mein Zahn ist abgebrochen.", el: "Έσπασε το δόντι μου.", tr: "Dişim kırıldı.", vi: "Răng tôi bị gãy.", th: "ฟันฉันหัก", id: "Gigi saya patah.", zh: "我的牙断了。" }
+  ],
+  payment: [
+    { en: "I have insurance.", es: "Tengo seguro.", fr: "J'ai une assurance.", pl: "Mam ubezpieczenie.", de: "Ich habe eine Versicherung.", el: "Έχω ασφάλιση.", tr: "Sigortam var.", vi: "Tôi có bảo hiểm.", th: "ฉันมีประกัน", id: "Saya punya asuransi.", zh: "我有保险。" },
+    { en: "I'm paying myself.", es: "Pago yo mismo.", fr: "Je paie moi-même.", pl: "Płacę sam.", de: "Ich zahle selbst.", el: "Πληρώνω ο ίδιος.", tr: "Kendim ödüyorum.", vi: "Tôi tự trả.", th: "ฉันจ่ายเอง", id: "Saya bayar sendiri.", zh: "我自己付。" },
+    { en: "Can I pay by card?", es: "¿Puedo pagar con tarjeta?", fr: "Puis-je payer par carte ?", pl: "Czy mogę zapłacić kartą?", de: "Kann ich mit Karte zahlen?", el: "Μπορώ να πληρώσω με κάρτα;", tr: "Kartla ödeyebilir miyim?", vi: "Tôi có thể trả bằng thẻ không?", th: "จ่ายด้วยบัตรได้ไหม", id: "Bisa bayar pakai kartu?", zh: "可以刷卡吗？" },
+    { en: "Please give me a receipt.", es: "Deme un recibo, por favor.", fr: "Donnez-moi un reçu, s'il vous plaît.", pl: "Proszę o paragon.", de: "Bitte geben Sie mir eine Quittung.", el: "Παρακαλώ δώστε μου απόδειξη.", tr: "Fiş verir misiniz?", vi: "Cho tôi xin hóa đơn.", th: "ขอใบเสร็จด้วย", id: "Tolong beri saya struk.", zh: "请给我收据。" }
+  ],
+  understand: [
+    { en: "I don't understand.", es: "No entiendo.", fr: "Je ne comprends pas.", pl: "Nie rozumiem.", de: "Ich verstehe nicht.", el: "Δεν καταλαβαίνω.", tr: "Anlamıyorum.", vi: "Tôi không hiểu.", th: "ฉันไม่เข้าใจ", id: "Saya tidak mengerti.", zh: "我不明白。" },
+    { en: "Please speak more slowly.", es: "Hable más despacio, por favor.", fr: "Parlez plus lentement, s'il vous plaît.", pl: "Proszę mówić wolniej.", de: "Sprechen Sie bitte langsamer.", el: "Μιλήστε πιο αργά, παρακαλώ.", tr: "Lütfen daha yavaş konuşun.", vi: "Làm ơn nói chậm hơn.", th: "กรุณาพูดช้าลง", id: "Tolong bicara lebih lambat.", zh: "请说慢一点。" },
+    { en: "Please write it down.", es: "Escríbalo, por favor.", fr: "Écrivez-le, s'il vous plaît.", pl: "Proszę to zapisać.", de: "Schreiben Sie es bitte auf.", el: "Γράψτε το, παρακαλώ.", tr: "Lütfen yazın.", vi: "Làm ơn viết ra.", th: "กรุณาเขียนให้ดู", id: "Tolong tuliskan.", zh: "请写下来。" },
+    { en: "Can I have an interpreter?", es: "¿Puedo tener un intérprete?", fr: "Puis-je avoir un interprète ?", pl: "Czy mogę prosić o tłumacza?", de: "Kann ich einen Dolmetscher bekommen?", el: "Μπορώ να έχω διερμηνέα;", tr: "Tercüman alabilir miyim?", vi: "Tôi có thể có phiên dịch không?", th: "ขอ interpreter ได้ไหม", id: "Bisa minta penerjemah?", zh: "可以有翻译吗？" }
+  ],
+  police: [
+    { en: "Call the police!", es: "¡Llame a la policía!", fr: "Appelez la police !", pl: "Proszę wezwać policję!", de: "Rufen Sie die Polizei!", el: "Καλέστε την αστυνομία!", tr: "Polisi arayın!", vi: "Gọi cảnh sát!", th: "เรียกตำรวจด้วย!", id: "Panggil polisi!", zh: "请叫警察！" },
+    { en: "My documents and phone were stolen.", es: "Me robaron los documentos y el teléfono.", fr: "On m'a volé mes papiers et mon téléphone.", pl: "Skradziono mi dokumenty i telefon.", de: "Meine Dokumente und mein Handy wurden gestohlen.", el: "Μου έκλεψαν τα έγγραφα και το τηλέφωνο.", tr: "Belgelerim ve telefonum çalındı.", vi: "Tôi bị mất trộm giấy tờ và điện thoại.", th: "เอกสารและโทรศัพท์ของฉันถูกขโมย", id: "Dokumen dan ponsel saya dicuri.", zh: "我的证件和手机被偷了。" },
+    { en: "There was a traffic accident, we need help.", es: "Hubo un accidente de tráfico, necesitamos ayuda.", fr: "Il y a eu un accident de la route, nous avons besoin d'aide.", pl: "Doszło do wypadku drogowego, potrzebna pomoc.", de: "Es gab einen Verkehrsunfall, wir brauchen Hilfe.", el: "Έγινε τροχαίο ατύχημα, χρειαζόμαστε βοήθεια.", tr: "Trafik kazası oldu, yardıma ihtiyacımız var.", vi: "Có tai nạn giao thông, chúng tôi cần giúp đỡ.", th: "เกิดอุบัติเหตุทางถนน ต้องการความช่วยเหลือ", id: "Terjadi kecelakaan lalu lintas, kami butuh bantuan.", zh: "发生了交通事故，我们需要帮助。" },
+    { en: "I need a police report for insurance.", es: "Necesito un parte policial para el seguro.", fr: "J'ai besoin d'un constat pour l'assurance.", pl: "Potrzebuję protokołu dla ubezpieczyciela.", de: "Ich brauche ein Protokoll für die Versicherung.", el: "Χρειάζομαι βεβαίωση για την ασφάλεια.", tr: "Sigorta için polis tutanağı gerekiyor.", vi: "Tôi cần biên bản để làm bảo hiểm.", th: "ฉันต้องการใบบันทึกประจำวันสำหรับประกัน", id: "Saya perlu laporan polisi untuk asuransi.", zh: "我需要报案证明给保险公司。" }
+  ],
+  bites: [
+    { en: "An animal bit me.", es: "Me mordió un animal.", fr: "Un animal m'a mordu.", pl: "Ugryzło mnie zwierzę.", de: "Ein Tier hat mich gebissen.", el: "Με δάγκωσε ένα ζώο.", tr: "Bir hayvan beni ısırdı.", vi: "Tôi bị động vật cắn.", th: "ฉันถูกสัตว์กัด", id: "Saya digigit hewan.", zh: "我被动物咬伤了。" },
+    { en: "I was stung by an insect or jellyfish.", es: "Me picó un insecto o una medusa.", fr: "J'ai été piqué par un insecte ou une méduse.", pl: "Użądlił mnie owad lub poparzyła meduza.", de: "Ich wurde von einem Insekt gestochen oder von einer Qualle verbrannt.", el: "Με τσίμπησε έντομο ή μέδουσα.", tr: "Böcek soktu veya denizanası yaktı.", vi: "Tôi bị côn trùng đốt hoặc sứa chích.", th: "ฉันถูกแมลงต่อยหรือแมงกะพรุน", id: "Saya disengat serangga atau ubur-ubur.", zh: "我被虫子咬了或被水母蛰了。" },
+    { en: "I have a severe burn.", es: "Tengo una quemadura grave.", fr: "J'ai une brûlure grave.", pl: "Mam silne oparzenie.", de: "Ich habe eine schwere Verbrennung.", el: "Έχω σοβαρό έγκαυμα.", tr: "Ciddi bir yanığım var.", vi: "Tôi bị bỏng nặng.", th: "ฉันมีแผลไหม้รุนแรง", id: "Saya mengalami luka bakar parah.", zh: "我严重烧伤/晒伤了。" },
+    { en: "Do I need a tetanus or rabies shot?", es: "¿Necesito vacuna contra el tétanos o la rabia?", fr: "Ai-je besoin d'un vaccin contre le tétanos ou la rage ?", pl: "Czy potrzebuję szczepionki przeciw tężcowi lub wściekliźnie?", de: "Brauche ich eine Tetanus- oder Tollwutimpfung?", el: "Χρειάζομαι εμβόλιο τετάνου ή λύσσας;", tr: "Tetanoz veya kuduz aşısı gerekiyor mu?", vi: "Tôi có cần tiêm uốn ván hoặc dại không?", th: "ฉันต้องฉีดวัคซีนบาดทะยักหรือพิษสุนัขบ้าไหม", id: "Apakah saya perlu suntik tetanus atau rabies?", zh: "我需要打破伤风或狂犬疫苗吗？" }
+  ],
+  hike: [
+    { en: "I'm lost, please help me get to the road.", es: "Estoy perdido, ayúdeme a salir a la carretera.", fr: "Je suis perdu, aidez-moi à rejoindre la route.", pl: "Zgubiłem się, proszę pomóc mi wyjść na drogę.", de: "Ich habe mich verlaufen, helfen Sie mir zur Straße.", el: "Χάθηκα, βοηθήστε με να βγω στον δρόμο.", tr: "Kayboldum, yola çıkmama yardım edin.", vi: "Tôi bị lạc, làm ơn giúp tôi ra đường lớn.", th: "ฉันหลงทาง ช่วยพาไปที่ถนนหน่อย", id: "Saya tersesat, tolong bantu ke jalan raya.", zh: "我迷路了，请帮我走到大路上。" },
+    { en: "Please give me some water.", es: "Por favor, deme agua.", fr: "S'il vous plaît, donnez-moi de l'eau.", pl: "Proszę o trochę wody.", de: "Bitte geben Sie mir etwas Wasser.", el: "Παρακαλώ δώστε μου λίγο νερό.", tr: "Lütfen bana biraz su verin.", vi: "Làm ơn cho tôi xin ít nước.", th: "กรุณาขอน้ำดื่มหน่อย", id: "Tolong beri saya air minum.", zh: "请给我一点水。" },
+    { en: "I need to make a call or charge my phone.", es: "Necesito hacer una llamada o cargar el teléfono.", fr: "J'ai besoin d'appeler ou de charger mon téléphone.", pl: "Muszę zadzwonić lub naładować telefon.", de: "Ich muss telefonieren oder mein Handy laden.", el: "Πρέπει να τηλεφωνήσω ή να φορτίσω το κινητό μου.", tr: "Arama yapmam veya telefonumu şarj etmem gerekiyor.", vi: "Tôi cần gọi điện hoặc sạc điện thoại.", th: "ฉันต้องโทรศัพท์หรือชาร์จแบตมือถือ", id: "Saya perlu menelepon atau mengisi daya ponsel.", zh: "我需要打电话或给手机充电。" },
+    { en: "I can't walk any further, I need help.", es: "No puedo caminar más, necesito ayuda.", fr: "Je ne peux plus marcher, j'ai besoin d'aide.", pl: "Nie mogę iść dalej, potrzebuję pomocy.", de: "Ich kann nicht weitergehen, ich brauche Hilfe.", el: "Δεν μπορώ να περπατήσω άλλο, χρειάζομαι βοήθεια.", tr: "Daha fazla yürüyemiyorum, yardıma ihtiyacım var.", vi: "Tôi không thể đi tiếp được nữa, tôi cần giúp đỡ.", th: "ฉันเดินต่อไม่ไหวแล้ว ต้องการความช่วยเหลือ", id: "Saya tidak kuat berjalan lagi, butuh bantuan.", zh: "我走不动了，需要帮助。" },
+    { en: "Where is the nearest village or bus stop?", es: "¿Dónde está el pueblo o la parada más cercana?", fr: "Où est le village ou l'arrêt le plus proche ?", pl: "Gdzie jest najbliższa wieś lub przystanek?", de: "Wo ist das nächste Dorf oder die nächste Haltestelle?", el: "Πού είναι το πιο κοντινό χωριό ή η στάση;", tr: "En yakın köy veya durak nerede?", vi: "Làng hoặc trạm xe gần nhất ở đâu?", th: "หมู่บ้านหรือป้ายรถที่ใกล้ที่สุดอยู่ไหน", id: "Di mana desa atau halte terdekat?", zh: "最近的村庄或车站在哪里？" }
+  ],
+  travel: [
+    { en: "I have severe motion sickness, please give me water or a bag.", es: "Estoy muy mareado, deme agua o una bolsa, por favor.", fr: "J'ai le mal des transports, donnez-moi de l'eau ou un sac.", pl: "Mam silną chorobę lokomocyjną, proszę o wodę lub woreczek.", de: "Mir ist stark übel, bitte geben Sie mir Wasser oder eine Tüte.", el: "Έχω έντονη ναυτία, δώστε μου νερό ή σακούλα.", tr: "Çok midem bulanıyor, lütfen su veya poşet verin.", vi: "Tôi bị say tàu xe nặng, làm ơn cho tôi nước hoặc túi nôn.", th: "ฉันเมาเรือ/เมาเครื่องบินมาก ขอน้ำหรือถุงหน่อย", id: "Saya mabuk perjalanan parah, minta air atau kantong.", zh: "我晕船/晕机很厉害，请给我水或呕吐袋。" },
+    { en: "Please call the flight attendant or crew.", es: "Por favor, llame a la azafata o a la tripulación.", fr: "S'il vous plaît, appelez l'hôtesse ou l'équipage.", pl: "Proszę wezwać stewardesę lub załogę.", de: "Bitte rufen Sie die Flugbegleiterin oder die Crew.", el: "Παρακαλώ καλέστε το πλήρωμα.", tr: "Lütfen kabin görevlisini veya mürettebatı çağırın.", vi: "Làm ơn gọi tiếp viên hoặc thủy thủ đoàn.", th: "กรุณาเรียกพนักงานต้อนรับหรือลูกเรือด้วย", id: "Tolong panggil pramugari atau awak kapal.", zh: "请叫乘务员或船员。" },
+    { en: "Is there a doctor or first aid kit on board?", es: "¿Hay un médico o botiquín a bordo?", fr: "Y a-t-il un médecin ou une trousse de secours à bord ?", pl: "Czy na pokładzie jest lekarz lub apteczka?", de: "Gibt es an Bord einen Arzt oder ein Erste-Hilfe-Set?", el: "Υπάρχει γιατρός ή φαρμακείο στο σκάφος;", tr: "Gemide veya uçakta doktor ya da ilk yardım çantası var mı?", vi: "Trên tàu/máy bay có bác sĩ hoặc hộp sơ cứu không?", th: "บนเรือ/เครื่องบินมีหมอหรือชุดปฐมพยาบาลไหม", id: "Apakah ada dokter atau kotak P3K di kapal/pesawat?", zh: "船上或飞机上有医生或急救箱吗？" },
+    { en: "My ears are blocked and hurt badly.", es: "Tengo los oídos taponados y me duelen mucho.", fr: "J'ai les oreilles bouchées et très mal.", pl: "Mam zatkane uszy i bardzo mnie bolą.", de: "Meine Ohren sind verstopft und tun stark weh.", el: "Βούλωσαν τα αυτιά μου και πονούν πολύ.", tr: "Kulaklarım tıkandı ve çok ağrıyor.", vi: "Tai tôi bị ù và đau rất nhiều.", th: "หูของฉันอื้อและปวดมาก", id: "Telinga saya tersumbat dan sangat sakit.", zh: "我的耳朵堵住了，疼得厉害。" },
+    { en: "I will need medical help upon arrival.", es: "Necesitaré asistencia médica al llegar.", fr: "J'aurai besoin d'une aide médicale à l'arrivée.", pl: "Będę potrzebować pomocy medycznej po przybyciu.", de: "Ich werde bei der Ankunft medizinische Hilfe brauchen.", el: "Θα χρειαστώ ιατρική βοήθεια κατά την άφιξη.", tr: "Varışta tıbbi yardıma ihtiyacım olacak.", vi: "Tôi sẽ cần hỗ trợ y tế khi đến nơi.", th: "ฉันต้องการความช่วยเหลือทางการแพทย์เมื่อถึงที่หมาย", id: "Saya akan membutuhkan bantuan medis saat tiba.", zh: "到达后我需要医疗帮助。" }
+  ]
+};
+
+/* Подписи полей карточки по языкам. */
+window.CARD_LABELS = {
+  ru: { name: "Имя", birth: "Год рождения", blood: "Группа крови", allergies: "Аллергии", meds: "Постоянные лекарства", conditions: "Хронические состояния", contact: "Экстренный контакт" },
+  sr: { name: "Ime", birth: "Godina rođenja", blood: "Krvna grupa", allergies: "Alergije", meds: "Redovni lekovi", conditions: "Hronična stanja", contact: "Kontakt u hitnom slučaju" },
+  en: { name: "Name", birth: "Year of birth", blood: "Blood type", allergies: "Allergies", meds: "Regular medicines", conditions: "Chronic conditions", contact: "Emergency contact" },
+  es: { name: "Nombre", birth: "Año de nacimiento", blood: "Grupo sanguíneo", allergies: "Alergias", meds: "Medicamentos habituales", conditions: "Enfermedades crónicas", contact: "Contacto de emergencia" },
+  fr: { name: "Nom", birth: "Année de naissance", blood: "Groupe sanguin", allergies: "Allergies", meds: "Médicaments habituels", conditions: "Maladies chroniques", contact: "Contact d'urgence" },
+  pl: { name: "Imię", birth: "Rok urodzenia", blood: "Grupa krwi", allergies: "Alergie", meds: "Stałe leki", conditions: "Choroby przewlekłe", contact: "Kontakt w nagłym wypadku" },
+  de: { name: "Name", birth: "Geburtsjahr", blood: "Blutgruppe", allergies: "Allergien", meds: "Regelmäßige Medikamente", conditions: "Chronische Erkrankungen", contact: "Notfallkontakt" },
+  el: { name: "Όνομα", birth: "Έτος γέννησης", blood: "Ομάδα αίματος", allergies: "Αλλεργίες", meds: "Τακτικά φάρμακα", conditions: "Χρόνιες παθήσεις", contact: "Επαφή έκτακτης ανάγκης" },
+  tr: { name: "Ad", birth: "Doğum yılı", blood: "Kan grubu", allergies: "Alerjiler", meds: "Düzenli ilaçlar", conditions: "Kronik hastalıklar", contact: "Acil durum iletişimi" },
+  vi: { name: "Tên", birth: "Năm sinh", blood: "Nhóm máu", allergies: "Dị ứng", meds: "Thuốc thường dùng", conditions: "Bệnh mãn tính", contact: "Liên hệ khẩn cấp" },
+  th: { name: "ชื่อ", birth: "ปีเกิด", blood: "กลุ่มเลือด", allergies: "อาการแพ้", meds: "ยาที่ใช้ประจำ", conditions: "โรคประจำตัว", contact: "ผู้ติดต่อฉุกเฉิน" },
+  id: { name: "Nama", birth: "Tahun lahir", blood: "Golongan darah", allergies: "Alergi", meds: "Obat rutin", conditions: "Penyakit kronis", contact: "Kontak darurat" },
+  zh: { name: "姓名", birth: "出生年份", blood: "血型", allergies: "过敏", meds: "常用药", conditions: "慢性病", contact: "紧急联系人" }
+};
+
+/* Строки интерфейса по языкам.
+   ui — подписи экранов, sit — названия и подсказки ситуаций.
+   Формат: I18N[код].ui.ключ и I18N[код].sit[id] = [название, подсказка]. */
+
+window.I18N = {
+  ru: {
+    ui: {
+      app: "Разговорник", medical: "медицинский · 112",
+      tabSit: "Ситуации", tabCard: "Моя карточка", tabAbout: "О приложении", tabSettings: "Настройки", themeTitle: "Оформление", darkTheme: "Тёмная тема", install: "Установить приложение", donateTitle: "Поддержать проект", donateNote: "Приложение бесплатное, без рекламы и подписок. Если оно помогло — можно поддержать. Отправляйте только в указанной сети.", donateCopy: "Скопировать", donateCopied: "Скопировано", donateEmpty: "Реквизиты появятся позже.", donateOpen: "Открыть",
+      homeTitle: "Что случилось?",
+      homeLead: "Выберите ситуацию. Нажмите на фразу, чтобы показать её целиком.",
+      offText: "Работает без интернета: фразы, произношение и карточка здоровья всегда под рукой.",
+      back: "Все ситуации",
+      cardTitle: "Карточка здоровья",
+      cardLead: "Данные остаются в вашем телефоне. Их можно показать врачу или фармацевту.",
+      showDoc: "Показать врачу", print: "Печать",
+      cardNote: "Карточка не заменяет медицинские документы и не является медицинской рекомендацией.",
+      aboutLead: "Медицинский разговорник для людей, которые оказались в чужой стране.",
+      discText: "Это информация, а не медицинская рекомендация. Приложение помогает объясниться и переводит фразы. Оно не ставит диагноз и не заменяет врача или фармацевта.",
+      reviewText: "Переводы и произношение — черновик: их нужно проверить у носителей языка и у медработника.",
+      privacyText: "Данные не покидают устройство: нет аккаунтов, нет сервера, нет аналитики.",
+      countSit: "Ситуаций", countPhr: "Фраз", version: "Версия данных",
+      net: "Интернет", netNo: "Не требуется",
+      sheetTitle: "Язык", sheetUi: "Язык интерфейса", sheetPhr: "Язык фраз",
+      overlayHint: "Нажмите в любом месте, чтобы закрыть"
+    },
+    sit: {
+      emergency: ["Экстренная помощь", "Скорая, врач, сильная боль"],
+      pharmacy: ["В аптеке", "Купить лекарство, спросить наличие"],
+      doctor: ["У врача", "Приём, жалобы, история"],
+      pain: ["Боль", "Где, какая, насколько сильно"],
+      fever: ["Температура и простуда", "Жар, горло, кашель"],
+      stomach: ["Живот", "Тошнота, боль, расстройство"],
+      allergy: ["Аллергия", "Сыпь, отёк, трудно дышать"],
+      head: ["Голова", "Мигрень, головокружение"],
+      chronic: ["Постоянные лекарства", "Продлить рецепт, найти своё"],
+      pregnancy: ["Беременность", "Срок, безопасность лекарств"],
+      child: ["Ребёнок", "Возраст, жар, помощь"],
+      mental: ["Психическое состояние", "Тревога, паника"],
+      injury: ["Травма", "Падение, кровотечение"],
+      dentist: ["Стоматология", "Острая зубная боль"],
+      payment: ["Оплата и страховка", "Счёт, карта, документы"],
+      understand: ["Не понимаю", "Спасательные фразы"],
+      police: ["Полиция и 112", "ДТП, кража, документы"],
+      bites: ["Укусы и ожоги", "Животные, насекомые, солнце"],
+      hike: ["В походе и в горах", "Вода, связь, дорога, помощь"],
+      travel: ["На воде и в полёте", "Укачивание, уши, помощь экипажа"]
+    }
+  },
+
+  en: {
+    ui: {
+      app: "Phrasebook", medical: "medical",
+      tabSit: "Topics", tabCard: "My card", tabAbout: "About", tabSettings: "Settings", themeTitle: "Appearance", darkTheme: "Dark theme", install: "Install app", donateTitle: "Support the project", donateNote: "The app is free, without ads or subscriptions. If it helped, you can support it. Send only on the network shown.", donateCopy: "Copy", donateCopied: "Copied", donateEmpty: "Donation details coming soon.", donateOpen: "Open",
+      homeTitle: "What's wrong?",
+      homeLead: "Choose a topic. Tap a phrase to show it full screen.",
+      offText: "Works offline: phrases, pronunciation and your health card are always at hand.",
+      back: "All topics",
+      cardTitle: "Health card",
+      cardLead: "Data stays on your phone. You can show it to a doctor or pharmacist.",
+      showDoc: "Show to doctor", print: "Print",
+      cardNote: "This card does not replace medical documents and is not medical advice.",
+      aboutLead: "A medical phrasebook for people in a foreign country.",
+      discText: "This is information, not medical advice. The app helps you explain things and translates phrases. It does not diagnose and does not replace a doctor or pharmacist.",
+      reviewText: "Translations and pronunciation are drafts: they need native and medical review.",
+      privacyText: "Data never leaves the device: no accounts, no server, no analytics.",
+      countSit: "Topics", countPhr: "Phrases", version: "Data version",
+      net: "Internet", netNo: "Not required",
+      sheetTitle: "Language", sheetUi: "Interface language", sheetPhr: "Phrase language",
+      overlayHint: "Tap anywhere to close"
+    },
+    sit: {
+      emergency: ["Emergency", "Ambulance, doctor, severe pain"],
+      pharmacy: ["Pharmacy", "Buy medicine, check availability"],
+      doctor: ["At the doctor", "Appointment, symptoms, history"],
+      pain: ["Pain", "Where, what kind, how strong"],
+      fever: ["Fever and cold", "Fever, throat, cough"],
+      stomach: ["Stomach", "Nausea, pain, upset"],
+      allergy: ["Allergy", "Rash, swelling, hard to breathe"],
+      head: ["Head", "Migraine, dizziness"],
+      chronic: ["Regular medicines", "Repeat prescription, find yours"],
+      pregnancy: ["Pregnancy", "Term, medicine safety"],
+      child: ["Child", "Age, fever, help"],
+      mental: ["Mental health", "Anxiety, panic"],
+      injury: ["Injury", "Fall, bleeding"],
+      dentist: ["Dentist", "Severe toothache"],
+      payment: ["Payment and insurance", "Bill, card, documents"],
+      understand: ["I don't understand", "Rescue phrases"],
+      police: ["Police & 112", "Accident, theft, documents"],
+      bites: ["Bites & burns", "Animals, insects, sunburn"],
+      hike: ["Hiking & outdoors", "Water, signal, road, help"],
+      travel: ["Boat & flight", "Motion sickness, ears, crew help"]
+    }
+  },
+
+  es: {
+    ui: {
+      app: "Frases", medical: "médico",
+      tabSit: "Temas", tabCard: "Mi tarjeta", tabAbout: "Acerca de", tabSettings: "Ajustes", themeTitle: "Apariencia", darkTheme: "Tema oscuro", install: "Instalar aplicación", donateTitle: "Apoyar el proyecto", donateNote: "La app es gratuita, sin anuncios ni suscripciones. Si te ayudó, puedes apoyarla. Envía solo en la red indicada.", donateCopy: "Copiar", donateCopied: "Copiado", donateEmpty: "Los datos llegarán pronto.", donateOpen: "Abrir",
+      homeTitle: "¿Qué pasa?",
+      homeLead: "Elija un tema. Toque una frase para mostrarla a pantalla completa.",
+      offText: "Funciona sin internet: frases, pronunciación y tu tarjeta de salud siempre a mano.",
+      back: "Todos los temas",
+      cardTitle: "Tarjeta de salud",
+      cardLead: "Los datos se quedan en su teléfono. Puede mostrarlos a un médico o farmacéutico.",
+      showDoc: "Mostrar al médico", print: "Imprimir",
+      cardNote: "Esta tarjeta no sustituye documentos médicos ni es una recomendación médica.",
+      aboutLead: "Un frasebook médico para quien está en otro país.",
+      discText: "Esto es información, no una recomendación médica. La app ayuda a explicarse y traduce frases. No diagnostica ni sustituye a un médico o farmacéutico.",
+      reviewText: "Las traducciones y la pronunciación son borradores: necesitan revisión nativa y médica.",
+      privacyText: "Los datos no salen del dispositivo: sin cuentas, sin servidor, sin analítica.",
+      countSit: "Temas", countPhr: "Frases", version: "Versión de datos",
+      net: "Internet", netNo: "No hace falta",
+      sheetTitle: "Idioma", sheetUi: "Idioma de la interfaz", sheetPhr: "Idioma de las frases",
+      overlayHint: "Toque en cualquier lugar para cerrar"
+    },
+    sit: {
+      emergency: ["Emergencia", "Ambulancia, médico, dolor fuerte"],
+      pharmacy: ["Farmacia", "Comprar medicamento, consultar disponibilidad"],
+      doctor: ["En el médico", "Cita, síntomas, historial"],
+      pain: ["Dolor", "Dónde, cómo, cuánto"],
+      fever: ["Fiebre y resfriado", "Fiebre, garganta, tos"],
+      stomach: ["Estómago", "Náuseas, dolor, malestar"],
+      allergy: ["Alergia", "Sarpullido, hinchazón, dificultad para respirar"],
+      head: ["Cabeza", "Migraña, mareo"],
+      chronic: ["Medicamentos habituales", "Renovar receta, encontrar el suyo"],
+      pregnancy: ["Embarazo", "Plazo, seguridad de medicamentos"],
+      child: ["Niño", "Edad, fiebre, ayuda"],
+      mental: ["Salud mental", "Ansiedad, pánico"],
+      injury: ["Lesión", "Caída, sangrado"],
+      dentist: ["Dentista", "Dolor de muelas fuerte"],
+      payment: ["Pago y seguro", "Factura, tarjeta, documentos"],
+      understand: ["No entiendo", "Frases de auxilio"],
+      police: ["Policía y 112", "Accidente, robo, documentos"],
+      bites: ["Mordeduras y quemaduras", "Animales, insectos, sol"],
+      hike: ["Senderismo y montaña", "Agua, señal, camino, ayuda"],
+      travel: ["Barco y vuelo", "Mareo, oídos, ayuda de tripulación"]
+    }
+  },
+
+  fr: {
+    ui: {
+      app: "Phrases", medical: "médical",
+      tabSit: "Situations", tabCard: "Ma carte", tabAbout: "À propos", tabSettings: "Réglages", themeTitle: "Apparence", darkTheme: "Thème sombre", install: "Installer l'application", donateTitle: "Soutenir le projet", donateNote: "L'application est gratuite, sans publicité ni abonnement. Si elle vous a aidé, vous pouvez la soutenir. Envoyez uniquement sur le réseau indiqué.", donateCopy: "Copier", donateCopied: "Copié", donateEmpty: "Les coordonnées arriveront bientôt.", donateOpen: "Ouvrir",
+      homeTitle: "Qu'est-ce qui ne va pas ?",
+      homeLead: "Choisissez une situation. Touchez une phrase pour l'afficher en grand.",
+      offText: "Fonctionne hors ligne : phrases, prononciation et carte de santé toujours à portée de main.",
+      back: "Toutes les situations",
+      cardTitle: "Carte de santé",
+      cardLead: "Les données restent sur votre téléphone. Vous pouvez les montrer à un médecin ou pharmacien.",
+      showDoc: "Montrer au médecin", print: "Imprimer",
+      cardNote: "Cette carte ne remplace pas des documents médicaux et n'est pas un avis médical.",
+      aboutLead: "Un guide de phrases médicales pour ceux qui sont à l'étranger.",
+      discText: "Ce sont des informations, pas un avis médical. L'app aide à s'expliquer et traduit des phrases. Elle ne diagnostique pas et ne remplace pas un médecin ou pharmacien.",
+      reviewText: "Traductions et prononciation sont des brouillons : à vérifier par un natif et un soignant.",
+      privacyText: "Les données ne quittent pas l'appareil : pas de compte, pas de serveur, pas d'analyse.",
+      countSit: "Situations", countPhr: "Phrases", version: "Version des données",
+      net: "Internet", netNo: "Pas nécessaire",
+      sheetTitle: "Langue", sheetUi: "Langue de l'interface", sheetPhr: "Langue des phrases",
+      overlayHint: "Touchez n'importe où pour fermer"
+    },
+    sit: {
+      emergency: ["Urgence", "Ambulance, médecin, douleur forte"],
+      pharmacy: ["Pharmacie", "Acheter un médicament, vérifier la disponibilité"],
+      doctor: ["Chez le médecin", "Rendez-vous, symptômes, antécédents"],
+      pain: ["Douleur", "Où, quelle, intensité"],
+      fever: ["Fièvre et rhume", "Fièvre, gorge, toux"],
+      stomach: ["Ventre", "Nausées, douleur, troubles"],
+      allergy: ["Allergie", "Éruption, gonflement, difficulté à respirer"],
+      head: ["Tête", "Migraine, vertiges"],
+      chronic: ["Médicaments habituels", "Renouveler l'ordonnance, trouver le vôtre"],
+      pregnancy: ["Grossesse", "Terme, sécurité des médicaments"],
+      child: ["Enfant", "Âge, fièvre, aide"],
+      mental: ["Santé mentale", "Anxiété, panique"],
+      injury: ["Blessure", "Chute, saignement"],
+      dentist: ["Dentiste", "Mal de dents aigu"],
+      payment: ["Paiement et assurance", "Facture, carte, documents"],
+      understand: ["Je ne comprends pas", "Phrases de secours"],
+      police: ["Police et 112", "Accident, vol, papiers"],
+      bites: ["Morsures et brûlures", "Animaux, insectes, soleil"],
+      hike: ["Randonnée et montagne", "Eau, réseau, route, aide"],
+      travel: ["Bateau et vol", "Mal des transports, oreilles, équipage"]
+    }
+  },
+
+  pl: {
+    ui: {
+      app: "Rozmówki", medical: "medyczny",
+      tabSit: "Sytuacje", tabCard: "Moja karta", tabAbout: "O aplikacji", tabSettings: "Ustawienia", themeTitle: "Wygląd", darkTheme: "Ciemny motyw", install: "Zainstaluj aplikację", donateTitle: "Wesprzyj projekt", donateNote: "Aplikacja jest bezpłatna, bez reklam i subskrypcji. Jeśli pomogła, możesz ją wesprzeć. Wysyłaj tylko w podanej sieci.", donateCopy: "Kopiuj", donateCopied: "Skopiowano", donateEmpty: "Dane pojawią się później.", donateOpen: "Otwórz",
+      homeTitle: "Co się dzieje?",
+      homeLead: "Wybierz sytuację. Dotknij frazy, aby pokazać ją na pełnym ekranie.",
+      offText: "Działa bez internetu: frazy, wymowa i karta zdrowia zawsze pod ręką.",
+      back: "Wszystkie sytuacje",
+      cardTitle: "Karta zdrowia",
+      cardLead: "Dane zostają w telefonie. Możesz pokazać je lekarzowi lub farmaceucie.",
+      showDoc: "Pokaż lekarzowi", print: "Drukuj",
+      cardNote: "Ta karta nie zastępuje dokumentów medycznych i nie jest poradą medyczną.",
+      aboutLead: "Rozmówki medyczne dla osób w obcym kraju.",
+      discText: "To informacja, a nie porada medyczna. Aplikacja pomaga się wytłumaczyć i tłumaczy frazy. Nie diagnozuje i nie zastępuje lekarza ani farmaceuty.",
+      reviewText: "Tłumaczenia i wymowa to wersje robocze: wymagają weryfikacji native speakera i medyka.",
+      privacyText: "Dane nie opuszczają urządzenia: bez kont, bez serwera, bez analityki.",
+      countSit: "Sytuacji", countPhr: "Fraz", version: "Wersja danych",
+      net: "Internet", netNo: "Niepotrzebny",
+      sheetTitle: "Język", sheetUi: "Język interfejsu", sheetPhr: "Język fraz",
+      overlayHint: "Dotknij gdziekolwiek, aby zamknąć"
+    },
+    sit: {
+      emergency: ["Nagły wypadek", "Karetka, lekarz, silny ból"],
+      pharmacy: ["Apteka", "Kupić lek, sprawdzić dostępność"],
+      doctor: ["U lekarza", "Wizyta, objawy, historia"],
+      pain: ["Ból", "Gdzie, jaki, jak silny"],
+      fever: ["Gorączka i przeziębienie", "Gorączka, gardło, kaszel"],
+      stomach: ["Brzuch", "Nudności, ból, rozstrój"],
+      allergy: ["Alergia", "Wysypka, obrzęk, trudności z oddychaniem"],
+      head: ["Głowa", "Migrena, zawroty głowy"],
+      chronic: ["Stałe leki", "Powtórzyć receptę, znaleźć swoje"],
+      pregnancy: ["Ciąża", "Termin, bezpieczeństwo leków"],
+      child: ["Dziecko", "Wiek, gorączka, pomoc"],
+      mental: ["Zdrowie psychiczne", "Lęk, panika"],
+      injury: ["Uraz", "Upadek, krwawienie"],
+      dentist: ["Stomatolog", "Ostry ból zęba"],
+      payment: ["Płatność i ubezpieczenie", "Rachunek, karta, dokumenty"],
+      understand: ["Nie rozumiem", "Ratunkowe zwroty"],
+      police: ["Policja i 112", "Wypadek, kradzież, dokumenty"],
+      bites: ["Ukąszenia i oparzenia", "Zwierzęta, owady, słońce"],
+      hike: ["W górach i na szlaku", "Woda, zasięg, droga, pomoc"],
+      travel: ["Na wodzie i w locie", "Choroba lokomocyjna, uszy, załoga"]
+    }
+  },
+
+  de: {
+    ui: {
+      app: "Sprachführer", medical: "medizinisch",
+      tabSit: "Situationen", tabCard: "Meine Karte", tabAbout: "Info", tabSettings: "Einstellungen", themeTitle: "Darstellung", darkTheme: "Dunkles Design", install: "App installieren", donateTitle: "Projekt unterstützen", donateNote: "Die App ist kostenlos, ohne Werbung und Abos. Wenn sie geholfen hat, kannst du sie unterstützen. Nur im angegebenen Netzwerk senden.", donateCopy: "Kopieren", donateCopied: "Kopiert", donateEmpty: "Zahlungsdaten folgen.", donateOpen: "Öffnen",
+      homeTitle: "Was ist los?",
+      homeLead: "Wählen Sie eine Situation. Tippen Sie auf einen Satz, um ihn groß anzuzeigen.",
+      offText: "Funktioniert offline: Sätze, Aussprache und Gesundheitskarte immer griffbereit.",
+      back: "Alle Situationen",
+      cardTitle: "Gesundheitskarte",
+      cardLead: "Daten bleiben auf Ihrem Telefon. Sie können sie Arzt oder Apotheker zeigen.",
+      showDoc: "Arzt zeigen", print: "Drucken",
+      cardNote: "Diese Karte ersetzt keine medizinischen Dokumente und ist keine medizinische Empfehlung.",
+      aboutLead: "Ein medizinischer Sprachführer für Menschen im Ausland.",
+      discText: "Das sind Informationen, keine medizinische Empfehlung. Die App hilft beim Erklären und übersetzt Sätze. Sie diagnostiziert nicht und ersetzt keinen Arzt oder Apotheker.",
+      reviewText: "Übersetzungen und Aussprache sind Entwürfe: muttersprachliche und medizinische Prüfung nötig.",
+      privacyText: "Daten verlassen das Gerät nicht: keine Konten, kein Server, keine Analyse.",
+      countSit: "Situationen", countPhr: "Sätze", version: "Datenversion",
+      net: "Internet", netNo: "Nicht nötig",
+      sheetTitle: "Sprache", sheetUi: "Sprache der Oberfläche", sheetPhr: "Sprache der Sätze",
+      overlayHint: "Zum Schließen irgendwo tippen"
+    },
+    sit: {
+      emergency: ["Notfall", "Krankenwagen, Arzt, starker Schmerz"],
+      pharmacy: ["Apotheke", "Medikament kaufen, Verfügbarkeit prüfen"],
+      doctor: ["Beim Arzt", "Termin, Beschwerden, Vorgeschichte"],
+      pain: ["Schmerz", "Wo, wie, wie stark"],
+      fever: ["Fieber und Erkältung", "Fieber, Hals, Husten"],
+      stomach: ["Bauch", "Übelkeit, Schmerz, Beschwerden"],
+      allergy: ["Allergie", "Ausschlag, Schwellung, Atemnot"],
+      head: ["Kopf", "Migräne, Schwindel"],
+      chronic: ["Regelmäßige Medikamente", "Rezept verlängern, eigenes finden"],
+      pregnancy: ["Schwangerschaft", "Termin, Medikamentensicherheit"],
+      child: ["Kind", "Alter, Fieber, Hilfe"],
+      mental: ["Psychische Gesundheit", "Angst, Panik"],
+      injury: ["Verletzung", "Sturz, Blutung"],
+      dentist: ["Zahnarzt", "Starke Zahnschmerzen"],
+      payment: ["Zahlung und Versicherung", "Rechnung, Karte, Dokumente"],
+      understand: ["Ich verstehe nicht", "Rettungssätze"],
+      police: ["Polizei & 112", "Unfall, Diebstahl, Dokumente"],
+      bites: ["Bisse & Verbrennungen", "Tiere, Insekten, Sonne"],
+      hike: ["Wandern & Berge", "Wasser, Empfang, Weg, Hilfe"],
+      travel: ["Boot & Flug", "Reiseübelkeit, Ohren, Crew-Hilfe"]
+    }
+  },
+
+  el: {
+    ui: {
+      app: "Φράσεις", medical: "ιατρικό",
+      tabSit: "Θέματα", tabCard: "Η κάρτα μου", tabAbout: "Πληροφορίες", tabSettings: "Ρυθμίσεις", themeTitle: "Εμφάνιση", darkTheme: "Σκούρο θέμα", install: "Εγκατάσταση εφαρμογής", donateTitle: "Στήριξη του έργου", donateNote: "Η εφαρμογή είναι δωρεάν, χωρίς διαφημίσεις και συνδρομές. Αν βοήθησε, μπορείτε να τη στηρίξετε. Στείλτε μόνο στο δίκτυο που αναφέρεται.", donateCopy: "Αντιγραφή", donateCopied: "Αντιγράφηκε", donateEmpty: "Τα στοιχεία θα προστεθούν σύντομα.", donateOpen: "Άνοιγμα",
+      homeTitle: "Τι συμβαίνει;",
+      homeLead: "Επιλέξτε θέμα. Πατήστε μια φράση για μεγέθυνση.",
+      offText: "Λειτουργεί χωρίς internet: φράσεις, προφορά και κάρτα υγείας πάντα διαθέσιμα.",
+      back: "Όλα τα θέματα",
+      cardTitle: "Κάρτα υγείας",
+      cardLead: "Τα δεδομένα μένουν στο τηλέφωνό σας. Δείξτε τα σε γιατρό ή φαρμακοποιό.",
+      showDoc: "Δείξε στον γιατρό", print: "Εκτύπωση",
+      cardNote: "Η κάρτα δεν αντικαθιστά ιατρικά έγγραφα και δεν είναι ιατρική σύσταση.",
+      aboutLead: "Ιατρικός οδηγός φράσεων για όσους βρίσκονται σε ξένη χώρα.",
+      discText: "Αυτές είναι πληροφορίες, όχι ιατρική σύσταση. Η εφαρμογή βοηθά να εξηγηθείτε και μεταφράζει φράσεις. Δεν κάνει διάγνωση και δεν αντικαθιστά γιατρό ή φαρμακοποιό.",
+      reviewText: "Οι μεταφράσεις και η προφορά είναι προσχέδια: χρειάζονται έλεγχο από φυσικό ομιλητή και γιατρό.",
+      privacyText: "Τα δεδομένα δεν φεύγουν από τη συσκευή: χωρίς λογαριασμούς, χωρίς διακομιστή.",
+      countSit: "Θέματα", countPhr: "Φράσεις", version: "Έκδοση δεδομένων",
+      net: "Internet", netNo: "Δεν χρειάζεται",
+      sheetTitle: "Γλώσσα", sheetUi: "Γλώσσα διεπαφής", sheetPhr: "Γλώσσα φράσεων",
+      overlayHint: "Πατήστε οπουδήποτε για κλείσιμο"
+    },
+    sit: {
+      emergency: ["Επείγον", "Ασθενοφόρο, γιατρός, έντονος πόνος"],
+      pharmacy: ["Φαρμακείο", "Αγορά φαρμάκου, διαθεσιμότητα"],
+      doctor: ["Στον γιατρό", "Ραντεβού, συμπτώματα, ιστορικό"],
+      pain: ["Πόνος", "Πού, τι είδους, πόσο έντονος"],
+      fever: ["Πυρετός και κρύωμα", "Πυρετός, λαιμός, βήχας"],
+      stomach: ["Στομάχι", "Ναυτία, πόνος, ενόχληση"],
+      allergy: ["Αλλεργία", "Εξάνθημα, πρήξιμο, δύσπνοια"],
+      head: ["Κεφάλι", "Ημικρανία, ζάλη"],
+      chronic: ["Τακτικά φάρμακα", "Επανάληψη συνταγής, βρες το δικό σου"],
+      pregnancy: ["Εγκυμοσύνη", "Διάρκεια, ασφάλεια φαρμάκων"],
+      child: ["Παιδί", "Ηλικία, πυρετός, βοήθεια"],
+      mental: ["Ψυχική υγεία", "Άγχος, πανικός"],
+      injury: ["Τραυματισμός", "Πτώση, αιμορραγία"],
+      dentist: ["Οδοντίατρος", "Έντονος πονόδοντος"],
+      payment: ["Πληρωμή και ασφάλιση", "Λογαριασμός, κάρτα, έγγραφα"],
+      understand: ["Δεν καταλαβαίνω", "Φράσεις ανάγκης"],
+      police: ["Αστυνομία & 112", "Ατύχημα, κλοπή, έγγραφα"],
+      bites: ["Δαγκώματα & εγκαύματα", "Ζώα, έντομα, ήλιος"],
+      hike: ["Πεζοπορία & βουνό", "Νερό, σήμα, δρόμος, βοήθεια"],
+      travel: ["Πλοίο & πτήση", "Ναυτία, αυτιά, βοήθεια πληρώματος"]
+    }
+  },
+
+  tr: {
+    ui: {
+      app: "Konuşma", medical: "tıbbi",
+      tabSit: "Konular", tabCard: "Kartım", tabAbout: "Hakkında", tabSettings: "Ayarlar", themeTitle: "Görünüm", darkTheme: "Koyu tema", install: "Uygulamayı yükle", donateTitle: "Projeyi destekle", donateNote: "Uygulama ücretsiz, reklamsız ve aboneliksiz. Yardımcı olduysa destekleyebilirsiniz. Yalnızca belirtilen ağda gönderin.", donateCopy: "Kopyala", donateCopied: "Kopyalandı", donateEmpty: "Ödeme bilgileri yakında.", donateOpen: "Aç",
+      homeTitle: "Ne oldu?",
+      homeLead: "Bir konu seçin. Büyütmek için bir cümleye dokunun.",
+      offText: "İnternetsiz çalışır: cümleler, telaffuz ve sağlık kartı her zaman elinizin altında.",
+      back: "Tüm konular",
+      cardTitle: "Sağlık kartı",
+      cardLead: "Veriler telefonunuzda kalır. Doktora veya eczacıya gösterebilirsiniz.",
+      showDoc: "Doktora göster", print: "Yazdır",
+      cardNote: "Bu kart tıbbi belgelerin yerine geçmez ve tıbbi öneri değildir.",
+      aboutLead: "Yabancı ülkedeki insanlar için tıbbi konuşma kılavuzu.",
+      discText: "Bu bilgidir, tıbbi öneri değildir. Uygulama anlaşmanıza yardım eder ve cümleleri çevirir. Teşhis koymaz, doktorun veya eczacının yerini almaz.",
+      reviewText: "Çeviriler ve telaffuz taslaktır: ana dil ve tıbbi kontrol gerekir.",
+      privacyText: "Veriler cihazdan çıkmaz: hesap yok, sunucu yok, analitik yok.",
+      countSit: "Konu", countPhr: "Cümle", version: "Veri sürümü",
+      net: "İnternet", netNo: "Gerekmez",
+      sheetTitle: "Dil", sheetUi: "Arayüz dili", sheetPhr: "Cümle dili",
+      overlayHint: "Kapatmak için herhangi bir yere dokunun"
+    },
+    sit: {
+      emergency: ["Acil durum", "Ambulans, doktor, şiddetli ağrı"],
+      pharmacy: ["Eczane", "İlaç almak, stok sormak"],
+      doctor: ["Doktorda", "Randevu, şikayetler, geçmiş"],
+      pain: ["Ağrı", "Nerede, nasıl, ne kadar şiddetli"],
+      fever: ["Ateş ve soğuk algınlığı", "Ateş, boğaz, öksürük"],
+      stomach: ["Karın", "Bulantı, ağrı, rahatsızlık"],
+      allergy: ["Alerji", "Döküntü, şişlik, nefes darlığı"],
+      head: ["Baş", "Migren, baş dönmesi"],
+      chronic: ["Düzenli ilaçlar", "Reçete yenileme, kendininkini bulma"],
+      pregnancy: ["Hamilelik", "Süre, ilaç güvenliği"],
+      child: ["Çocuk", "Yaş, ateş, yardım"],
+      mental: ["Ruh sağlığı", "Kaygı, panik"],
+      injury: ["Yaralanma", "Düşme, kanama"],
+      dentist: ["Dişçi", "Şiddetli diş ağrısı"],
+      payment: ["Ödeme ve sigorta", "Fatura, kart, belgeler"],
+      understand: ["Anlamıyorum", "Acil ifadeler"],
+      police: ["Polis ve 112", "Kaza, hırsızlık, belgeler"],
+      bites: ["Isırıklar ve yanıklar", "Hayvanlar, böcekler, güneş"],
+      hike: ["Doğa yürüyüşü", "Su, sinyal, yol, yardım"],
+      travel: ["Deniz ve uçuş", "Mide bulantısı, kulak, ekip yardımı"]
+    }
+  },
+
+  vi: {
+    ui: {
+      app: "Mẫu câu", medical: "y tế",
+      tabSit: "Tình huống", tabCard: "Thẻ của tôi", tabAbout: "Giới thiệu", tabSettings: "Cài đặt", themeTitle: "Giao diện", darkTheme: "Chế độ tối", install: "Cài đặt ứng dụng", donateTitle: "Ủng hộ dự án", donateNote: "Ứng dụng miễn phí, không quảng cáo và không đăng ký. Nếu hữu ích, bạn có thể ủng hộ. Chỉ gửi qua mạng được ghi.", donateCopy: "Sao chép", donateCopied: "Đã sao chép", donateEmpty: "Thông tin sẽ sớm có.", donateOpen: "Mở",
+      homeTitle: "Có chuyện gì?",
+      homeLead: "Chọn tình huống. Chạm vào câu để hiển thị toàn màn hình.",
+      offText: "Hoạt động ngoại tuyến: câu, cách đọc và thẻ sức khỏe luôn bên bạn.",
+      back: "Tất cả",
+      cardTitle: "Thẻ sức khỏe",
+      cardLead: "Dữ liệu ở lại trong điện thoại. Bạn có thể cho bác sĩ hoặc dược sĩ xem.",
+      showDoc: "Cho bác sĩ xem", print: "In",
+      cardNote: "Thẻ này không thay thế giấy tờ y tế và không phải lời khuyên y tế.",
+      aboutLead: "Sổ tay câu y tế cho người ở nước ngoài.",
+      discText: "Đây là thông tin, không phải lời khuyên y tế. Ứng dụng giúp bạn giải thích và dịch câu. Ứng dụng không chẩn đoán và không thay thế bác sĩ hay dược sĩ.",
+      reviewText: "Bản dịch và cách đọc là bản nháp: cần người bản ngữ và nhân viên y tế kiểm tra.",
+      privacyText: "Dữ liệu không rời khỏi thiết bị: không tài khoản, không máy chủ, không phân tích.",
+      countSit: "Tình huống", countPhr: "Câu", version: "Phiên bản dữ liệu",
+      net: "Internet", netNo: "Không cần",
+      sheetTitle: "Ngôn ngữ", sheetUi: "Ngôn ngữ giao diện", sheetPhr: "Ngôn ngữ câu",
+      overlayHint: "Chạm vào bất kỳ đâu để đóng"
+    },
+    sit: {
+      emergency: ["Cấp cứu", "Xe cứu thương, bác sĩ, đau dữ dội"],
+      pharmacy: ["Hiệu thuốc", "Mua thuốc, hỏi còn hàng"],
+      doctor: ["Tại bác sĩ", "Lịch hẹn, triệu chứng, tiền sử"],
+      pain: ["Đau", "Ở đâu, kiểu gì, mức độ"],
+      fever: ["Sốt và cảm", "Sốt, họng, ho"],
+      stomach: ["Bụng", "Buồn nôn, đau, khó chịu"],
+      allergy: ["Dị ứng", "Phát ban, sưng, khó thở"],
+      head: ["Đầu", "Đau nửa đầu, chóng mặt"],
+      chronic: ["Thuốc thường dùng", "Kê lại đơn, tìm thuốc của bạn"],
+      pregnancy: ["Mang thai", "Thời gian, an toàn thuốc"],
+      child: ["Trẻ em", "Tuổi, sốt, giúp đỡ"],
+      mental: ["Sức khỏe tâm thần", "Lo lắng, hoảng loạn"],
+      injury: ["Chấn thương", "Ngã, chảy máu"],
+      dentist: ["Nha sĩ", "Đau răng dữ dội"],
+      payment: ["Thanh toán và bảo hiểm", "Hóa đơn, thẻ, giấy tờ"],
+      understand: ["Tôi không hiểu", "Câu cứu hộ"],
+      police: ["Cảnh sát & 112", "Tai nạn, mất trộm, giấy tờ"],
+      bites: ["Vết cắn & bỏng", "Động vật, côn trùng, nắng"],
+      hike: ["Đi rừng & leo núi", "Nước, sóng, đường, giúp đỡ"],
+      travel: ["Tàu thủy & máy bay", "Say sóng, đau tai, tiếp viên"]
+    }
+  },
+
+  th: {
+    ui: {
+      app: "ประโยค", medical: "การแพทย์",
+      tabSit: "สถานการณ์", tabCard: "บัตรของฉัน", tabAbout: "เกี่ยวกับ", tabSettings: "ตั้งค่า", themeTitle: "รูปลักษณ์", darkTheme: "ธีมมืด", install: "ติดตั้งแอป", donateTitle: "สนับสนุนโครงการ", donateNote: "แอปฟรี ไม่มีโฆษณาและไม่มีการสมัครสมาชิก หากมีประโยชน์สามารถสนับสนุนได้ ส่งผ่านเครือข่ายที่ระบุเท่านั้น", donateCopy: "คัดลอก", donateCopied: "คัดลอกแล้ว", donateEmpty: "ข้อมูลจะเพิ่มภายหลัง", donateOpen: "เปิด",
+      homeTitle: "เกิดอะไรขึ้น",
+      homeLead: "เลือกสถานการณ์ แตะประโยคเพื่อแสดงเต็มจอ",
+      offText: "ทำงานแบบออฟไลน์: ประโยค การออกเสียง และบัตรสุขภาพพร้อมใช้เสมอ",
+      back: "ทั้งหมด",
+      cardTitle: "บัตรสุขภาพ",
+      cardLead: "ข้อมูลอยู่ในโทรศัพท์ของคุณ แสดงให้หมอหรือเภสัชกรดูได้",
+      showDoc: "ให้หมอดู", print: "พิมพ์",
+      cardNote: "บัตรนี้ไม่ใช่เอกสารทางการแพทย์และไม่ใช่คำแนะนำทางการแพทย์",
+      aboutLead: "คู่มือประโยคทางการแพทย์สำหรับคนต่างประเทศ",
+      discText: "นี่คือข้อมูล ไม่ใช่คำแนะนำทางการแพทย์ แอปช่วยให้คุณอธิบายและแปลประโยค ไม่วินิจฉัยและไม่แทนหมอหรือเภสัชกร",
+      reviewText: "คำแปลและการออกเสียงเป็นฉบับร่าง ต้องให้เจ้าของภาษาและบุคลากรทางการแพทย์ตรวจ",
+      privacyText: "ข้อมูลไม่ออกจากเครื่อง ไม่มีบัญชี ไม่มีเซิร์ฟเวอร์ ไม่มีการวิเคราะห์",
+      countSit: "สถานการณ์", countPhr: "ประโยค", version: "เวอร์ชันข้อมูล",
+      net: "อินเทอร์เน็ต", netNo: "ไม่จำเป็น",
+      sheetTitle: "ภาษา", sheetUi: "ภาษาของหน้าจอ", sheetPhr: "ภาษาของประโยค",
+      overlayHint: "แตะที่ใดก็ได้เพื่อปิด"
+    },
+    sit: {
+      emergency: ["ฉุกเฉิน", "รถพยาบาล หมอ เจ็บมาก"],
+      pharmacy: ["ร้านขายยา", "ซื้อยา เช็คของ"],
+      doctor: ["ที่หมอ", "นัด อาการ ประวัติ"],
+      pain: ["อาการปวด", "ที่ไหน แบบไหน มากแค่ไหน"],
+      fever: ["ไข้และหวัด", "ไข้ คอ ไอ"],
+      stomach: ["ท้อง", "คลื่นไส้ ปวด ท้องเสีย"],
+      allergy: ["แพ้", "ผื่น บวม หายใจลำบาก"],
+      head: ["ศีรษะ", "ไมเกรน วิงเวียน"],
+      chronic: ["ยาประจำ", "ต่อใบสั่งยา หายาของคุณ"],
+      pregnancy: ["ตั้งครรภ์", "อายุครรภ์ ความปลอดภัยของยา"],
+      child: ["เด็ก", "อายุ ไข้ ช่วยเหลือ"],
+      mental: ["สุขภาพจิต", "วิตกกังวล แพนิก"],
+      injury: ["บาดเจ็บ", "หกล้ม เลือดออก"],
+      dentist: ["ทันตกรรม", "ปวดฟันมาก"],
+      payment: ["การจ่ายเงินและประกัน", "ใบเสร็จ บัตร เอกสาร"],
+      understand: ["ฉันไม่เข้าใจ", "ประโยคช่วยเหลือ"],
+      police: ["ตำรวจ & 112", "อุบัติเหตุ ขโมย เอกสาร"],
+      bites: ["สัตว์กัด & แผลไหม้", "สัตว์ แมลง แดดเผา"],
+      hike: ["เดินป่าและภูเขา", "น้ำ สัญญาณ ทาง ช่วยเหลือ"],
+      travel: ["เรือและเที่ยวบิน", "เมาเรือ ปวดหู ลูกเรือ"]
+    }
+  },
+
+  id: {
+    ui: {
+      app: "Frasa", medical: "medis",
+      tabSit: "Situasi", tabCard: "Kartu saya", tabAbout: "Tentang", tabSettings: "Pengaturan", themeTitle: "Tampilan", darkTheme: "Tema gelap", install: "Pasang aplikasi", donateTitle: "Dukung proyek", donateNote: "Aplikasi gratis, tanpa iklan dan langganan. Jika membantu, Anda bisa mendukung. Kirim hanya melalui jaringan yang tertera.", donateCopy: "Salin", donateCopied: "Disalin", donateEmpty: "Detail donasi segera hadir.", donateOpen: "Buka",
+      homeTitle: "Ada apa?",
+      homeLead: "Pilih situasi. Ketuk frasa untuk tampil layar penuh.",
+      offText: "Bekerja tanpa internet: frasa, pelafalan, dan kartu kesehatan selalu tersedia.",
+      back: "Semua",
+      cardTitle: "Kartu kesehatan",
+      cardLead: "Data tetap di ponsel. Bisa ditunjukkan ke dokter atau apoteker.",
+      showDoc: "Tunjukkan ke dokter", print: "Cetak",
+      cardNote: "Kartu ini bukan pengganti dokumen medis dan bukan saran medis.",
+      aboutLead: "Buku frasa medis untuk orang di negara asing.",
+      discText: "Ini informasi, bukan saran medis. Aplikasi membantu menjelaskan dan menerjemahkan frasa. Tidak mendiagnosis dan tidak menggantikan dokter atau apoteker.",
+      reviewText: "Terjemahan dan pelafalan adalah draf: perlu tinjauan penutur asli dan tenaga medis.",
+      privacyText: "Data tidak keluar dari perangkat: tanpa akun, tanpa server, tanpa analitik.",
+      countSit: "Situasi", countPhr: "Frasa", version: "Versi data",
+      net: "Internet", netNo: "Tidak perlu",
+      sheetTitle: "Bahasa", sheetUi: "Bahasa antarmuka", sheetPhr: "Bahasa frasa",
+      overlayHint: "Ketuk di mana saja untuk menutup"
+    },
+    sit: {
+      emergency: ["Darurat", "Ambulans, dokter, nyeri berat"],
+      pharmacy: ["Apotek", "Beli obat, tanya stok"],
+      doctor: ["Di dokter", "Janji, keluhan, riwayat"],
+      pain: ["Nyeri", "Di mana, seperti apa, seberapa"],
+      fever: ["Demam dan flu", "Demam, tenggorokan, batuk"],
+      stomach: ["Perut", "Mual, nyeri, gangguan"],
+      allergy: ["Alergi", "Ruam, bengkak, sulit bernapas"],
+      head: ["Kepala", "Migrain, pusing"],
+      chronic: ["Obat rutin", "Perpanjang resep, cari milik Anda"],
+      pregnancy: ["Kehamilan", "Usia, keamanan obat"],
+      child: ["Anak", "Usia, demam, bantuan"],
+      mental: ["Kesehatan mental", "Cemas, panik"],
+      injury: ["Cedera", "Jatuh, perdarahan"],
+      dentist: ["Dokter gigi", "Sakit gigi berat"],
+      payment: ["Pembayaran dan asuransi", "Tagihan, kartu, dokumen"],
+      understand: ["Saya tidak mengerti", "Frasa darurat"],
+      police: ["Polisi & 112", "Kecelakaan, pencurian, dokumen"],
+      bites: ["Gigitan & luka bakar", "Hewan, serangga, matahari"],
+      hike: ["Mendaki & alam", "Air, sinyal, jalan, bantuan"],
+      travel: ["Kapal & pesawat", "Mabuk perjalanan, telinga, kru"]
+    }
+  },
+
+  zh: {
+    ui: {
+      app: "短语", medical: "医疗",
+      tabSit: "情境", tabCard: "我的卡", tabAbout: "关于", tabSettings: "设置", themeTitle: "外观", darkTheme: "深色主题", install: "安装应用", donateTitle: "支持项目", donateNote: "应用免费，无广告和订阅。如果有帮助，可以支持。请仅在所示网络中发送。", donateCopy: "复制", donateCopied: "已复制", donateEmpty: "收款信息稍后添加。", donateOpen: "打开",
+      homeTitle: "怎么了？",
+      homeLead: "选择情境。点击句子全屏显示。",
+      offText: "无需网络：句子、发音和健康卡随时可用。",
+      back: "全部",
+      cardTitle: "健康卡",
+      cardLead: "数据留在手机里，可以给医生或药师看。",
+      showDoc: "给医生看", print: "打印",
+      cardNote: "此卡不能替代医疗文件，也不是医疗建议。",
+      aboutLead: "面向异国他乡者的医疗短语手册。",
+      discText: "这是信息，不是医疗建议。应用帮助你说明情况并翻译句子。它不做诊断，也不替代医生或药师。",
+      reviewText: "翻译和发音是草稿，需要母语者和医务人员校对。",
+      privacyText: "数据不离开设备：没有账号，没有服务器，没有分析。",
+      countSit: "情境", countPhr: "句子", version: "数据版本",
+      net: "网络", netNo: "不需要",
+      sheetTitle: "语言", sheetUi: "界面语言", sheetPhr: "句子语言",
+      overlayHint: "点击任意处关闭"
+    },
+    sit: {
+      emergency: ["紧急情况", "救护车、医生、剧痛"],
+      pharmacy: ["药房", "买药、问库存"],
+      doctor: ["看医生", "预约、症状、病史"],
+      pain: ["疼痛", "哪里、什么样、多严重"],
+      fever: ["发烧和感冒", "发烧、喉咙、咳嗽"],
+      stomach: ["肚子", "恶心、疼痛、不适"],
+      allergy: ["过敏", "皮疹、肿胀、呼吸困难"],
+      head: ["头部", "偏头痛、头晕"],
+      chronic: ["常用药", "续方、找到你的药"],
+      pregnancy: ["怀孕", "孕期、用药安全"],
+      child: ["儿童", "年龄、发烧、帮助"],
+      mental: ["心理健康", "焦虑、惊恐"],
+      injury: ["受伤", "跌倒、出血"],
+      dentist: ["牙科", "剧烈牙痛"],
+      payment: ["付款和保险", "账单、银行卡、证件"],
+      understand: ["我不明白", "应急用语"],
+      police: ["警察与112", "事故、失窃、证件"],
+      bites: ["咬伤与烧伤", "动物、昆虫、晒伤"],
+      hike: ["徒步与登山", "饮水、信号、路线、求助"],
+      travel: ["乘船与飞行", "晕船晕机、耳痛、乘务求助"]
+    }
+  }
+};
+
+/* Русская транскрипция произношения (третья строка).
+   Ключ — id ситуации, порядок совпадает с data.js.
+   Для сербского не нужна: там кириллица и есть транскрипция.
+   Всё приблизительно, ударение не помечено. Черновик для вычитки. */
+
+window.TRANSLIT = {
+  emergency: [
+    { en: "хэлп", es: "аюда", fr: "а лэд", pl: "помоцы", de: "хильфэ", el: "воифиа", tr: "ярдым эдин", vi: "кыу той вой", th: "чуай дуай", id: "толонг", zh: "цзю мин" },
+    { en: "кол эн эмбьюланс", es: "льямэ а уна амбулансиа", fr: "аплэ юн амбюланс", pl: "прошэн звэкач карэткэ", de: "руфэн зи айнэн кранкэнвагэн", el: "калестэ асфенофоро", tr: "амбуланс чаирын", vi: "гой сэ кыу тхыонг", th: "риак рот паябан дуай", id: "панггил амбуланс", zh: "цин цзяо цзюху чэ" },
+    { en: "ай нид э доктор", es: "нэсэсито ун мэдико", fr: "жэ бэзуэн эн мэдсэн", pl: "потшэбуен лекажа", de: "их браухэ айнэн арцт", el: "хрэазомэ ятро", tr: "бир доктора ихтияджим вар", vi: "той кэн бак си", th: "чан тон кан мо", id: "сая бутух доктер", zh: "во сюй яо и шэн" },
+    { en: "айм ин сивиэ пэйн", es: "тэнго ун долор муй фуэртэ", fr: "жэ трэ маль", pl: "мам сильны буль", de: "их хабэ штаркэ шмэрцэн", el: "эхо поли поно", tr: "шиддэтли аарым вар", vi: "той би дау зы зой", th: "чан джеп пуат мак", id: "сая ньери сэкали", zh: "во тэн дэ хэнь лихай" },
+    { en: "ай донт спик зэ лоукл лэнгвидж", es: "но абло эль идиома локаль", fr: "жё нё парль па ля ланг локаль", pl: "не муве в местовым ензыку", de: "их шпрэхэ ди ландэшпрашэ нихт", el: "дэн милао ти глосса тис хорас", tr: "ерэль дили конушмуюрум", vi: "той кхонг ной дыок тиенг диа фыонг", th: "чан пхут пхаса тхонгтхин май дай", id: "сая тидак биса бахаса сетэмпат", zh: "во бу хуэй шо данди юйянь" },
+    { en: "зис из май хэлс каад", es: "эта эс ми тархета дэ салуд", fr: "вуаси ма карт дэ сантэ", pl: "то ест моя карта здровя", de: "дас ист майнэ гэзунтхайтскартэ", el: "афти инэ и карта игиас му", tr: "бу бэним салык картым", vi: "дэй ла тхэ шык кхое куа той", th: "ни кхы бат суккхапх кхонг чан", id: "ини карту кэсэхатан сая", zh: "чжэ ши во дэ цзянькан ка" }
+  ],
+  pharmacy: [
+    { en: "ай нид э пэйнкилэ", es: "нэсэсито ун анальхесико", fr: "жэ бэзуэн эн антидулёр", pl: "потшэбуен лека пшэчивбулёвэго", de: "их браухэ айн шмэрцмитэль", el: "хрэазомэ эна павсипоно", tr: "бир аары кэсиджие ихтияджим вар", vi: "той кэн тхуок зам дау", th: "чан тон кан я кэ паут", id: "сая бутух обат пэрэда ньери", zh: "во сюй яо чжитун яо" },
+    { en: "ду ю хэв зис мэдисин", es: "тьенэ эстэ мэдикамэнто", fr: "авэ-ву сё мэдикамон", pl: "чы ма пан то лекарство", de: "хабэн зи дизэс мэдикамент", el: "эхетэ афто то фармако", tr: "бу илач сиздэ вар мы", vi: "бан ко лоай тхуок най кхонг", th: "кхун ми я туа ни май", id: "апаках анда пунья обат ини", zh: "ни мэнь ю чжэ чжун яо ма" },
+    { en: "ай нид э мэдисин уиз зис эктив ингридиэнт", es: "нэсэсито ун мэдикамэнто кон эстэ принсипио активо", fr: "жэ бэзуэн эн мэдикамон авэк сэт субстанс актив", pl: "потшэбуен лека с тов субстанцый чыннён", de: "их браухэ айн мэдикамент мит дизэм виркштоф", el: "хрэазомэ фармако мэ афти ти драстики усиа", tr: "бу эткэн маддэйи ичэрэн бир илач арыёрум", vi: "той кэн тхуок ко хат чат най", th: "чан тон кан я тхи ми сат орукрит ни", id: "сая бутух обат дэнган зат актив ини", zh: "во сюй яо хань чжэ чжун юсяо чэнфэнь дэ яо" },
+    { en: "из ит авэйлэбл уизаут э прискрипшн", es: "сэ вэндэ син рэсэта", fr: "эс-сэ диспонибль сан зордонанс", pl: "чы ест доступнэ бэз рэцэпты", de: "гибт эс дас рэцэптфрай", el: "диатитэтэ хорис синтаги", tr: "речэтэсиз алынабилыр ми", vi: "ко бан кхонг кан дон кхонг", th: "сы дай дой май тон чай ми бай санг я май", id: "апаках буса дибэли таньпа рэсэп", zh: "чжэгэ бу юн чуфан нэн май ма" },
+    { en: "ду ай нид э прискрипшн", es: "нэсэсито рэсэта", fr: "эж бэзуэн юн зордонанс", pl: "чы потшэбуе рэцэпты", de: "браухэ их айн рэцэпт", el: "хрэазомэ синтаги", tr: "речэтэйе ихтияджим вар мы", vi: "той ко кэн дон тхуок кхонг", th: "чан тон ми бай санг я май", id: "апаках сая пэрлу рэсэп", zh: "во сюй яо чуфан ма" },
+    { en: "хау мач даз ит кост", es: "куанто куэста", fr: "комбьян са кут", pl: "илэ то коштуе", de: "вас костэт дас", el: "посо кани", tr: "нэ кадар", vi: "за бао ньеу", th: "ракха тхаорай", id: "бэрапа харганья", zh: "до шао цянь" }
+  ],
+  doctor: [
+    { en: "ай хэв эн эпойнтмэнт", es: "тэнго сита", fr: "жэ рэндэву", pl: "мам визытэ", de: "их хабэ айнэн тэрмин", el: "эхо рантэву", tr: "рандэвум вар", vi: "той ко хэн", th: "чан ми нат", id: "сая ада джанджи", zh: "во юйюэ лэ" },
+    { en: "ай фил анвэл", es: "но мэ сьенто бьен", fr: "жё нё мё сан па бьен", pl: "злэ сен чую", de: "мир гэйт эс нихт гут", el: "дэн эстэномэ кала", tr: "кэндими кётю хисседиёрум", vi: "той тхай кхонг кхое", th: "чан русык май сабай", id: "сая мэраса тидак энак бадан", zh: "во бу шуфу" },
+    { en: "ит статид сри дэйз эгоу", es: "эмпэсо асэ трэс диас", fr: "са а комансэ иль я труа жур", pl: "зачэнло сен тшы дни тэму", de: "эс хат фор драй тагэн ангэфангэн", el: "ксэкинисэ прин апо трис мэрэс", tr: "юч гюн ёнджэ башлады", vi: "но бат дау ба нгай чыок", th: "рым ма мыа сам ван кон", id: "мулай тига хари ян лалу", zh: "сань тянь цянь кайши дэ" },
+    { en: "ай хэв э фивэ", es: "тэнго фьебрэ", fr: "жэ дэ ля фьевр", pl: "мам гоончкэ", de: "их хабэ фибэр", el: "эхо пирэто", tr: "атэшим вар", vi: "той би шот", th: "чан ми кхай", id: "сая дэмам", zh: "во фашао лэ" },
+    { en: "айм элёджик ту пэницилин", es: "сой алерхеко а ля пэницилина", fr: "жё сюи залержик а ля пэницилин", pl: "мам аляргю на пэницылинэ", de: "их бин алергиш гэгэн пэницилин", el: "имэ алергикос стин пэникилини", tr: "пэницилинэ алержим вар", vi: "той зи ынг вой пэницилин", th: "чан пхэ я пхэнитсинлин", id: "сая алерги пэницилин", zh: "во дуй цинмэйсу гоминь" },
+    { en: "ай тэйк зиз мэдисинз", es: "томо эстос мэдикамэнтос", fr: "жё пран сэ мэдикамон", pl: "пшиимуе тэ леки", de: "их нэмэ дизэ мэдикаментэ", el: "пэрно афта та фармака", tr: "бу илачлары кулланыёрум", vi: "той данг зунг нынг тхуок най", th: "чан кин я пхуак ни", id: "сая мэнконсумси обат-обат ини", zh: "во цзай фуюн чжэсе яо" }
+  ],
+  pain: [
+    { en: "ит хётс хиэ", es: "мэ дуэле аки", fr: "са мё фэ маль иси", pl: "боли мне тутай", de: "эс тут хир вэ", el: "понаи эдо", tr: "бурасы аарыёр", vi: "дау о дэй", th: "джеп тронг ни", id: "сакит ди сини", zh: "чжэли тэн" },
+    { en: "зэ пэйн из шаап", es: "эль долор эс агудо", fr: "ля дулёр э вив", pl: "буль ест оствы", de: "дэр шмэрц ист штэхэнт", el: "о понос инэ оксис", tr: "аары кэскин", vi: "дау нёй", th: "джеп бэп сиат", id: "ньеринья таджам", zh: "ши цытун" },
+    { en: "зэ пэйн гэтс вёс эт найт", es: "эль долор эмпэора пор ля ноче", fr: "ля дулёр саграв ля нюи", pl: "буль нашиля сен в ноцы", de: "нахтс вэрдэн ди шмэрцэн шлимэр", el: "о понос хиротэрэви то вради", tr: "аары гэджэлэри артыёр", vi: "дау нанг хон вэ дэм", th: "кланг кхын пуат мак кхын", id: "ньеринья макин парах малам", zh: "ваньшан гэн тэн" },
+    { en: "он э скэйл фром ван ту тэн итс эйт", es: "эн уна эскала дэль уно аль дьес эс очо", fr: "сюр юн эшэль дё эн а дис сэ тюит", pl: "в скали от еднэго до десенчу то ошэм", de: "ауф айнер скала фон айнс биз цэн ист эс ахт", el: "сэ климака апо эна эос дэка инэ окто", tr: "бирдэн она кадар сэкиз", vi: "чэн тханг дьем мот дэн мыой ла там", th: "хай кханэн нынг тхынг сип кхы пэт", id: "далам скала сату сампай сэпулух дэлапан", zh: "и дао ши фэнь дэ хуа ши ба фэнь" }
+  ],
+  fever: [
+    { en: "ай хэв э хай фивэ", es: "тэнго муча фьебрэ", fr: "жэ юн форт фьевр", pl: "мам высоон гоончкэ", de: "их хабэ хоес фибэр", el: "эхо ипсило пирэто", tr: "юксэк атэшим вар", vi: "той шот као", th: "чан ми кхай сунг", id: "сая дэмам тингги", zh: "во фа гаошао" },
+    { en: "май сроут хётс", es: "мэ дуэле ля гарганта", fr: "жэ маль а ля горж", pl: "боли мне гардло", de: "майн хальс тут вэ", el: "понаи о лальмос му", tr: "богъазым аарыёр", vi: "той дау хонг", th: "чан джеп кхо", id: "тэнггорокан сая сакит", zh: "во хоулун тэн" },
+    { en: "май ноуз из блокт", es: "тэнго ля нарис тапада", fr: "жэ лё нэ буше", pl: "мам затканы нос", de: "майнэ назэ ист фэрштопфт", el: "эхо вуломэни мити", tr: "бурнум тыкалы", vi: "той би нгет муй", th: "чан кхат чамук", id: "хидунг сая тэрсумбат", zh: "во бисай" },
+    { en: "ай хэв э коф", es: "тэнго тос", fr: "жэ юн тус", pl: "мам кашэль", de: "их хабэ хустэн", el: "эхо виха", tr: "ёксюрюм вар", vi: "той би хо", th: "чан ай", id: "сая батук", zh: "во кэсоу" }
+  ],
+  stomach: [
+    { en: "май стамэк хётс", es: "мэ дуэле эль эстомаго", fr: "жэ маль о вантр", pl: "боли мне бжух", de: "майн баух тут вэ", el: "понаи и килья му", tr: "карным аарыёр", vi: "той дау бунг", th: "чан пуат тхонг", id: "пэрут сая сакит", zh: "во дуцзы тэн" },
+    { en: "ай фил нозиэс", es: "тэнго наусеас", fr: "жэ дэ нозе", pl: "мам нудношчи", de: "мир ист юбэль", el: "эхо навтиа", tr: "мидэм буланыёр", vi: "той тхай буон нон", th: "чан кхлынсай", id: "сая муал", zh: "во сян ту" },
+    { en: "ай вомитид", es: "э вомитадо", fr: "жэ воми", pl: "вymётовалэм", de: "их хабэ мих юбэргэбэн", el: "экана эмэто", tr: "кустум", vi: "той да нон", th: "чан ачан", id: "сая мунтах", zh: "во тху лэ" },
+    { en: "ай хэв дайэриэ", es: "тэнго дьярреа", fr: "жэ ля дьяре", pl: "мам бегункэ", de: "их хабэ дурхфаль", el: "эхо дьяриа", tr: "ишаль олдум", vi: "той би тиеу чай", th: "чан тхонг сиа", id: "сая диаре", zh: "во ла дуцзы" },
+    { en: "ай хэв ноу эпитайт", es: "но тэнго апэтито", fr: "жё нэ па дапэти", pl: "не мам апэтыту", de: "их хабэ кайнэн апэтит", el: "дэн эхо орэкси", tr: "иштахым ёк", vi: "той кхонг тхай ан нгон", th: "чан май чарын ахан", id: "сая тидак напсу макан", zh: "во мэйю вэйкоу" }
+  ],
+  allergy: [
+    { en: "ай хэв эн элэджи", es: "тэнго уна алерхья", fr: "жэ юн залержи", pl: "мам аляргю", de: "их хабэ айнэ алерги", el: "эхо алергия", tr: "алержим вар", vi: "той би зи ынг", th: "чан ми акар пхэ", id: "сая пунья алерги", zh: "во ю гоминь" },
+    { en: "ай хэв э рэш", es: "тэнго ун сарпульидо", fr: "жэ юн эрюпсьон кютанэ", pl: "мам высыпкэ", de: "их хабэ айнэн аусшлаг", el: "эхо эксантима", tr: "дёкюнтюм вар", vi: "той би фат бан", th: "чан ми пхын", id: "сая ада руам", zh: "во ци чжэньцзы лэ" },
+    { en: "ай хэв трабл бризинг", es: "мэ куэста рэспирар", fr: "жэ дю маль а рэспирэ", pl: "мам трудности з оддыханем", de: "их хабэ швиригкайтэн байм атмэн", el: "дискалэвомэ на анапнэфсо", tr: "нэфэс алмакта зорланыёрум", vi: "той кхо тхо", th: "чан хайчай ламбак", id: "сая сулит бэрнапас", zh: "во хуси куннань" },
+    { en: "айм элэджик ту натс", es: "сой алерхеко а лос фрутос сэкос", fr: "жё сюи залержик о нуа", pl: "мам аляргю на ожэхы", de: "их бин алергиш гэгэн нюсэ", el: "имэ алергикос стус ксирус карпус", tr: "куруемише алержим вар", vi: "той зи ынг вой хат", th: "чан пхэ тхуа", id: "сая алерги качанг", zh: "во дуй цзяньго гоминь" },
+    { en: "айм лэктоуз интолэрэнт", es: "сой интолеранте а ля лактоса", fr: "жё сюи зэнтолеран о лактоз", pl: "мам нетолеранцью лактозы", de: "их бин лактозэинтолерант", el: "эхо дисанексия сти лактози", tr: "лактоз интолерансым вар", vi: "той кхонг зунг нап лактоза", th: "чан пхэ лэктхос", id: "сая интолеранси лактоза", zh: "во жутан бу найшоу" }
+  ],
+  head: [
+    { en: "ай хэв э хэдэйк", es: "мэ дуэле ля кабеса", fr: "жэ маль а ля тэт", pl: "боли мне глова", de: "их хабэ копфшмэрцэн", el: "эхо понокэфало", tr: "башым аарыёр", vi: "той би дау дау", th: "чан пуат хуа", id: "сая сакит кэпала", zh: "во тоутэн" },
+    { en: "ай хэв э майгрэйн", es: "тэнго мигранья", fr: "жэ юн мигрэн", pl: "мам мигрэнэ", de: "их хабэ мигрэнэ", el: "эхо имикраниа", tr: "мигрэним вар", vi: "той би дау ныа дау", th: "чан пэн майкрен", id: "сая мигрэн", zh: "во пьен тоутэн" },
+    { en: "ай фил дизи", es: "эстой марэадо", fr: "жэ дэ вэртиж", pl: "крэнци мне сен в глове", de: "мир ист швинделих", el: "зализомэ", tr: "башым дёнюёр", vi: "той би тёнг мат", th: "чан виан хуа", id: "сая пунгсинг", zh: "во тоу юнь" }
+  ],
+  chronic: [
+    { en: "ай тэйк зис эври дэй", es: "томо эсто тодос лос диас", fr: "жё пран са ту ле жур", pl: "бюрэ то цодзенне", de: "их нэмэ дас едэн таг", el: "то пэрно катэ мера", tr: "буну хэр гюн алыёрум", vi: "той зунг кай най мо нгай", th: "чан кин синг ни тхук ван", id: "сая минум ини сэтиап хари", zh: "во мэйтянь чи чжэгэ" },
+    { en: "ай нид э рипит прискрипшн", es: "нэсэсито рэновар ля рэсэта", fr: "жэ бэзуэн дён рёнувэльман дордонанс", pl: "потшэбуе повтурнэй рэцэпты", de: "их браухэ айн фольгэрэцэпт", el: "хрэазомэ эпаналипси синтагис", tr: "тэкpap речэтэ герэкийор", vi: "той кэн ке лай дон тхуок", th: "чан тон кан бай санг я то", id: "сая пэрлу рэсэп уланг", zh: "во сюй яо сюй кай чуфан" },
+    { en: "айв ран аут ов май тэблэтс", es: "сэ мэ акабарон лас пастильяс", fr: "жё нэ плю дё компrimэ", pl: "скончiлы ми сен таблетки", de: "майнэ таблетэн зинд але", el: "му тэлёсан та хапья", tr: "таблетлерим битти", vi: "той хет тхуок рой", th: "я мэт кхонг чан мот лэу", id: "таблет сая хаби", zh: "во дэ яо чи вань лэ" },
+    { en: "зис из май мэдисин хиэ из зэ пэкидж", es: "эстэ эс ми мэдикамэнто аки эста эль энвасэ", fr: "сэ мон мэдикамон вуаси лянбаляж", pl: "то моё лекажство ото опаковане", de: "дас ист майн мэдикамент хир ист ди паккунг", el: "афто инэ то фармако му ористэ и сискэвасиа", tr: "бу бэним илачым кутусу бурада", vi: "дэй ла тхуок куа той дэй ла во хоп", th: "ни кхы я кхонг чан ни кхы клонг я", id: "ини обат сая ини кэмасання", zh: "чжэ ши во дэ яо чжэ ши баочжуан" }
+  ],
+  pregnancy: [
+    { en: "айм прэгнэнт", es: "эстой эмбарасада", fr: "жё сюи зансэнт", pl: "естэм в чонжы", de: "их бин швангэр", el: "имэ эгкьёс", tr: "хамайим", vi: "той данг манг тхай", th: "чан кампанг танг кхан", id: "сая хамиль", zh: "во хуайюнь лэ" },
+    { en: "айм сри манс прэгнэнт", es: "эстой эмбарасада дэ трэс месэс", fr: "жё сюи зансэнт дё труа муа", pl: "естэм в тшэцим месёнцу чонжы", de: "их бин им дритэн монат швангэр", el: "имэ эгкьёс трион минон", tr: "юч айлык хамайим", vi: "той манг тхай ба тханг", th: "чан танг кхан сам дыан", id: "сая хамиль тига булан", zh: "во хуайюнь сань гэ юэ лэ" },
+    { en: "из зис сэйф ту тэйк дюрринг прэгнэнси", es: "эс сэгуро томар эсто дурантэ эль эмбарасо", fr: "эс-сэ сан данжё пандан ля гросэс", pl: "чы то ест бэзпечнэ в чонжы", de: "ист дас ин дэр швангэршафт унбэдэнклих", el: "инэ асфалэс афто стин эгкимосини", tr: "бу хамайликте гювэнли ми", vi: "тхуок най ко ан тоан кхи манг тхай кхонг", th: "я ни плодпхай самраб кхон тхонг май", id: "апаках ини аман саат хамиль", zh: "хуайюнь цицзянь чи чжэгэ аньцюань ма" }
+  ],
+  child: [
+    { en: "зис из май чайлд", es: "эстэ эс ми ихо", fr: "сэ мон анфан", pl: "то моё децко", de: "дас ист майн кинд", el: "афто инэ то пэди му", tr: "бу бэним чоджугум", vi: "дэй ла кон той", th: "ни кхы лук кхонг чан", id: "ини анак сая", zh: "чжэ ши во дэ хайцзы" },
+    { en: "хи из фо йэз оулд", es: "тьенэ куатро аньос", fr: "иль а катр ан", pl: "ма чтэры лята", de: "эр ист фир ярэ альт", el: "инэ тэсарон этон", tr: "дёрт яшында", vi: "чау бон туой", th: "кхау аю си кхуап", id: "диа эмпат тахун", zh: "тха сы суй" },
+    { en: "май чайлд хэз э фивэ", es: "ми ихо тьенэ фьебрэ", fr: "мон анфан а дё ля фьевр", pl: "моё децко ма гоончкэ", de: "майн кинд хат фибэр", el: "то пэди му эхи пирэто", tr: "чоджугумун атэши вар", vi: "кон той би шот", th: "лук кхонг чан ми кхай", id: "анак сая дэмам", zh: "во дэ хайцзы фашао лэ" }
+  ],
+  mental: [
+    { en: "айм хэвинг э пэник этэк", es: "тэнго ун атакэ дэ панико", fr: "жё фэ юн криз дё паник", pl: "мам атак паники", de: "их хабэ айнэ паникатакэ", el: "эхо криси панику", tr: "паник атак гэчириёрум", vi: "той данг би хоанг лоан", th: "чан кампанг ми окан пхэник", id: "сая сэданг паник", zh: "во цзинкун фацзо лэ" },
+    { en: "ай фил энкшэс", es: "тэнго ансьедад", fr: "жё сюи занксьё", pl: "мам ленк", de: "их бин энгстлих", el: "эхо агхос", tr: "кайгылыим", vi: "той ло ланг", th: "чан русык витокканкон", id: "сая чэмас", zh: "во хэнь цзяолюй" },
+    { en: "ай нид э сайколоджист", es: "нэсэсито ун психолого", fr: "жэ бэзуэн эн психолог", pl: "потшэбуе психолога", de: "их браухэ айнэн психологэн", el: "хрэазомэ психолого", tr: "бир психолога ихтияджим вар", vi: "той кэн чуен зя там ли", th: "чан тон кан нак читтавитхья", id: "сая бутух психолог", zh: "во сюй яо синьли ишэн" }
+  ],
+  injury: [
+    { en: "ай фэл", es: "мэ каи", fr: "жё сюи томбэ", pl: "упадлэм", de: "их бин гэфалэн", el: "эпэса", tr: "дюштум", vi: "той би нга", th: "чан хак лом", id: "сая тэрджатух", zh: "во шуайдао лэ" },
+    { en: "ай кант мув май аам", es: "но пуэдо мовэр эль бразо", fr: "жё нё пё буже лё бра", pl: "не могу рушаць рэнкон", de: "их кан майнэн арм нихт бэвэгэн", el: "дэн боро на кинисо то хэри му", tr: "колуму харэкэт эттирэмиёрум", vi: "той кхонг кы донг дыок тай", th: "чан кхаяб кхэн май дай", id: "сая тидак буса мэнггэраккан лэнган", zh: "во дэ гэбо дун бу ляо" },
+    { en: "айм блидинг", es: "эстой санграндо", fr: "жё сэнь", pl: "крваве", de: "их блютэ", el: "эммораго", tr: "канёрум", vi: "той данг чай мау", th: "чан ми лыат ок", id: "сая бэрдарах", zh: "во цзай люсюэ" }
+  ],
+  dentist: [
+    { en: "ай хэв э тутэйк", es: "мэ дуэле ун дьенте", fr: "жэ маль о дан", pl: "боли мне зомп", de: "их хабэ цаншмэрцэн", el: "понаи то донди му", tr: "дишим аарыёр", vi: "той би дау ранг", th: "чан пуат фан", id: "гиги сая сакит", zh: "во ятэн" },
+    { en: "ай нид ёджэнт хэлп", es: "нэсэсито аюда урхэнтэ", fr: "жэ бэзуэн дэд юржант", pl: "потшэбуе пильнэй помоцы", de: "их браухэ дрингэнт хилфэ", el: "хрэазомэ амэси воифиа", tr: "аджиль ярдыма ихтияджим вар", vi: "той кэн зюп гап", th: "чан тон кан кхуам чхуай дуан", id: "сая бутух бантуан дарурат", zh: "во сюй яо цзиньцзи банчжу" },
+    { en: "май тут из броукэн", es: "сэ мэ ромпьо ун дьенте", fr: "ма дан э касэ", pl: "зомп ми сен звамал", de: "майн цан ист апгэброхэн", el: "эспасэ то донди му", tr: "дишим кырылды", vi: "ранг той би гай", th: "фан чан хак", id: "гиги сая патах", zh: "во дэ я дуань лэ" }
+  ],
+  payment: [
+    { en: "ай хэв иншурэнс", es: "тэнго сэгуро", fr: "жэ юн асюранс", pl: "мам убэспэчене", de: "их хабэ айнэ фэрзихэрунг", el: "эхо асфалиси", tr: "сигортам вар", vi: "той ко бао хьем", th: "чан ми пракан", id: "сая пунья асуранси", zh: "во ю баосянь" },
+    { en: "айм пэйинг майсэлф", es: "паго йо мисмо", fr: "жё пэ муа-мэм", pl: "плацэ сам", de: "их цале зэльбст", el: "плироно о идиос", tr: "кэндим ёдюёрум", vi: "той ты ча", th: "чан тжай энг", id: "сая баяр сэндири", zh: "во цзыцзи фу" },
+    { en: "кэн ай пэй бай каад", es: "пуэдо пагар кон тархета", fr: "пюи-жё пэйе пар карт", pl: "чы могу заплатить картоон", de: "кан их мит картэ цален", el: "боро на плиросо мэ карта", tr: "картла ёдэйэбилир мийим", vi: "той ко тхэ ча бонг тхэ кхонг", th: "джай дуай бат дай май", id: "биса баяр пакай карту", zh: "кэи шуа ка ма" },
+    { en: "плиз гив ми э рисит", es: "дэмэ ун рэсибо пор фавор", fr: "донэ-муа эн рёсю силь ву плэ", pl: "прошэ о парагон", de: "битэ гэбэн зи мир айнэ квитунг", el: "паракало досите му аподикси", tr: "фиш вэрир мисиниз", vi: "тё той син хоа дон", th: "кхо бай бэсэт дуай", id: "толонг бэри сая струк", zh: "цин гэй во шоуцзюй" }
+  ],
+  understand: [
+    { en: "ай донт андэстэнд", es: "но энтьендо", fr: "жё нё компран па", pl: "не розумем", de: "их фэрштэе нихт", el: "дэн каталавэно", tr: "ашламыёрум", vi: "той кхонг хьеу", th: "чан май кхаучай", id: "сая тидак мэнэрти", zh: "во бу минбай" },
+    { en: "плиз спик мор слоули", es: "аблэ мас дэспасио пор фавор", fr: "парле плю лянтёман силь ву плэ", pl: "прошэ мувич вольней", de: "штрэхэн зи битэ лангзамэр", el: "милистэ пьо арга паракало", tr: "лютфэн даха яваш конушун", vi: "лам он ной там хон", th: "кэруна пхут ча лонг", id: "толонг бичара лебих ламбат", zh: "цин шо мань идянь" },
+    { en: "плиз райт ит даун", es: "эскрибало пор фавор", fr: "экривэ-лё силь ву плэ", pl: "прошэ то запиши", de: "шрайбэн зи эс битэ ауф", el: "грапстэ то паракало", tr: "лютфэн язын", vi: "лам он вьет ра", th: "кэруна кхиан хай ду", id: "толонг тулискан", zh: "цин се сялай" },
+    { en: "кэн ай хэв эн интёпритэ", es: "пуэдо тэнэр ун интэрпрэтэ", fr: "пюи-жё авуар эн энтэрпрэт", pl: "чы могу просить о тлумача", de: "кан их айнэн дольмэтшэр бэкома", el: "боро на эхо диэрминэа", tr: "тэрджюман алабилир мийим", vi: "той ко тхэ ко фиен зить кхонг", th: "кхо лам дай май", id: "биса минта пэнэрджамах", zh: "кэи ю фаньи ма" }
+  ],
+  police: [
+    { en: "кол зэ полис", es: "льямэ а ля полисиа", fr: "аплэ ля полис", pl: "прошэ вэзвач полицье", de: "руфэн зи ди полицай", el: "калестэ тин астиномиа", tr: "полиси араин", vi: "гой кань сат", th: "риак тамруат дуай", id: "панггил полиси", zh: "цин цзяо цзинча" },
+    { en: "май докьюмэнтс энд фоун вё стоулэн", es: "мэ робарон лос докумэнтос и эль тэлефоно", fr: "он ма воле мэ папье э мон тэлефон", pl: "скрадзёно ми докумэнты и тэлефон", de: "майнэ докумэнтэ унд майн хэнди вурдэн гэштолен", el: "му эклэпсан та энграфа кэ то тилэфоно", tr: "бэльгэлэрим вэ тэлефонум чалынды", vi: "той би мат тром зяй то ва дьен тхоай", th: "эккасан лэ тхорасап кхонг чан тхук кхамой", id: "докумэн дан понсэл сая дичури", zh: "во дэ чжэнцзянь хэ шоуцзи бэй тоу лэ" },
+    { en: "зэа воз э трэфик эксидэнт ви нид хэлп", es: "убо ун аксидэнтэ дэ трафико нэсэситамос аюда", fr: "иль я ю эн аксидан дё ля рут ну завон бэзуэн дэд", pl: "дошло до выпадку дроговэго потшэбна помоц", de: "эс габ айнэн фэркерсунфаль вир браухэн хильфэ", el: "эгинэ трохэо атихима хрэазомастэ воифиа", tr: "трафик казасы олду ярдыма ихтияджымыз вар", vi: "ко тай нан зао тхонг чунг той кэн зюп до", th: "кёт убаттихэт тханг тханон тон кан кхуам чхуай лыа", id: "тэрджади кэчелакаан лалу линтас ками бутух бантуан", zh: "фашэн лэ цзяотун шигу вомэнь сюй яо банчжу" },
+    { en: "ай нид э полис рипот фо иншурэнс", es: "нэсэсито ун партэ полисиаль пара эль сэгуро", fr: "жэ бэзуэн дён конста пур лясюранс", pl: "потшэбуе протоколу для убэспэчичеля", de: "их браухэ айн протоколь фюр ди фэрзихэрунг", el: "хрэазомэ вэвэоси я тин асфалиа", tr: "сигорта ичин полис тутанаа гэрэкиёр", vi: "той кэн бьен бан дэ лам бао хьем", th: "чан тон кан бай бантхык прачам ван самраб пракан", id: "сая пэрлу лапоран полиси унтук асуранси", zh: "во сюй яо баоань чжэнмин гэй баосянь гунсы" }
+  ],
+  bites: [
+    { en: "эн энимл бит ми", es: "мэ мордио ун анималь", fr: "эн анималь ма мордю", pl: "угрызло мне звэжэ", de: "айн тир хат мих гэбисэн", el: "мэ дагкосэ эна зоо", tr: "бир хайван бэни исырды", vi: "той би донг ват кан", th: "чан тхук сат кат", id: "сая дигигит хэван", zh: "во бэй дунъу яошан лэ" },
+    { en: "ай воз станг бай эн инсэкт о джэлифиш", es: "мэ пико ун инсэкто о уна мэдуса", fr: "жэ этэ пикэ пар эн инсэкт у юн мэдюз", pl: "ужондлил мне овад люб попажыла мэдуза", de: "их вурдэ фон айнэм инзэкт гэштохэн одэр фон айнер квале фэрбрант", el: "мэ цимбисэ эндомо и мэдуса", tr: "бёджэк сокту вэя дэнизанасы якты", vi: "той би кон чунг дот хоак сыа тить", th: "чан тхук малэнг той ры мэнгапхрун", id: "сая дисэнгат сэрангга атау убур-убур", zh: "во бэй чунцзы яо лэ хо бэй шуйму чжэ лэ" },
+    { en: "ай хэв э сивиэ бён", es: "тэнго уна кэмадура гравэ", fr: "жэ юн брюлюр грав", pl: "мам сильнэ опажэне", de: "их хабэ айнэ швэрэ фэрбрэнунг", el: "эхо соваро энгавма", tr: "джидди бир яныым вар", vi: "той би бонг нанг", th: "чан ми пхлэ май рунрэнг", id: "сая мэнгалами лука бакар парах", zh: "во яньчжун шаошан лэ" },
+    { en: "ду ай нид э тэтэнэс о рэйбиз шот", es: "нэсэсито вакуна контра эль тэтанос о ля рабья", fr: "эж бэзуэн дён ваксэн контр лё тэтанос у ля раж", pl: "чы потшэбуе шчепёнки пшэчив тэнжцови люб всчеклизьне", de: "браухэ их айнэ тэтанус одэр тольвутимфунг", el: "хрэазомэ эмволио тэтану и лисас", tr: "тэтаноз вэя кудуз ашысы гэрэкиёр му", vi: "той ко кэн тием уон ван хоак зай кхонг", th: "чан тон чит вакцин баттхаяк ры пхитсунакба май", id: "апаках сая пэрлу сунтик тэтанус атау рабиэс", zh: "во сюй яо да пошанфэн хо куанцюань имяо ма" }
+  ],
+  hike: [
+    { en: "айм лост плиз хэлп ми гэт ту зэ роуд", es: "эстой пэрдидо аюдэмэ а салир а ля каррэтэра", fr: "жё сюи пэрдю эдэ-муа а рёжуандр ля рут", pl: "згубилэм сен прошэ помуц ми выйшчь на дрогэ", de: "их хабэ мих фэрлауфэн хэлфэн зи мир цур штрасэ", el: "хафика воифистэ мэ на вго стон дромо", tr: "кайболдум йола чыкмама ярдым эдин", vi: "той би лак лам он зюп той ра дыонг лон", th: "чан лонг тханг чуай пха пай тхи тханон ной", id: "сая тэрсэсат толонг банту кэ джалан рая", zh: "во милу лэ цин бан во цзоудао далу шан" },
+    { en: "плиз гив ми сам вотэ", es: "пор фавор дэмэ агуа", fr: "силь ву плэ донэ-муа дё ло", pl: "прошэ о трохэ воды", de: "битэ гэбэн зи мир этвас васэр", el: "паракало достэ му лиго нэро", tr: "лютфэн бана бираз су вэрин", vi: "лам он тё той син ит ныок", th: "кэруна кхо нам дым ной", id: "толонг бэри сая аир минум", zh: "цин гэй во идянь шуй" },
+    { en: "ай нид ту мэйк э кол о чадж май фоун", es: "нэсэсито асэр уна льямада о каргар эль тэлефоно", fr: "жэ бэзуэн даплэ у дё шарже мон тэлефон", pl: "мушэ задзвонич люб наладовач тэлефон", de: "их мус тэлефонирэн одэр майн хэнди ладэн", el: "прэпи на тилэфонисо и на фортисо то кинито му", tr: "арама япмам вэя тэлефонуму шарж этмэм гэрэкийор", vi: "той кэн гой дьен хоак сак дьен тхоай", th: "чан тон тхорасап ры чат бэт мытхы", id: "сая пэрлу мэнэлепон атау мэнгиси дая понсэл", zh: "во сюй яо да дяньхуа хо гэй шоуцзи чундянь" },
+    { en: "ай кант вок эни фёдэ ай нид хэлп", es: "но пуэдо каминар мас нэсэсито аюда", fr: "жё нё пё плю марше жэ бэзуэн дэд", pl: "не могу ишчь далэй потшэбуе помоцы", de: "их кан нихт вайтэргэен их браухэ хильфэ", el: "дэн боро на пэрпатисо ало хрэазомэ воифиа", tr: "даха фазла юрюемэёрум ярдыма ихтияджым вар", vi: "той кхонг тхэ ди тьеп дыок ныа той кэн зюп до", th: "чан дён то май вай лэу тон кан кхуам чхуай лыа", id: "сая тидак куат бэрджалан лаги бутух бантуан", zh: "во цзоу бу дун лэ сюй яо банчжу" },
+    { en: "вэа из зэ ниэрист вилидж о бас стоп", es: "дондэ эста эль пуэбло о ля парада мас сэркана", fr: "у э лё виляж у лярэ лё плю прош", pl: "гдзье ест найближша вешь люб пшистанэк", de: "во ист дас нэхстэ дорф одэр ди нэхстэ хальтэштэле", el: "пу инэ то пьо контино хорио и и стаси", tr: "эн якын кёй вэя дурак нэрэдэ", vi: "ланг хоак чам сэ ган нят о дау", th: "мубан ры пай рот тхи клай тхисут ю най", id: "ди мана дэса атау хальтэ тэрдэкат", zh: "цзуйцзинь дэ цуньчжуан хо чэчжань цзай нали" }
+  ],
+  travel: [
+    { en: "ай хэв сивиэ моушн сикнэс плиз гив ми вотэ о э бэг", es: "эстой муй марэадо дэмэ агуа о уна больса пор фавор", fr: "жэ лё маль дэ транспор донэ-муа дё ло у эн сак", pl: "мам сильну хоробэ локомоцыйну прошэ о водэ люб ворэчэк", de: "мир ист штарк юбэль битэ гэбэн зи мир васэр одэр айнэ тютэ", el: "эхо энтони нафтиа достэ му нэро и сакула", tr: "чок мидэм буланыёр лютфэн су вэя пошэт вэрин", vi: "той би сай тау сэ нанг лам он тё той ныок хоак туй нон", th: "чан мао рыа мак кхо нам ры тхунг ной", id: "сая мабук пэрджалана парах минта аир атау кантонг", zh: "во юньчуань хэнь лихай цин гэй во шуй хо дайцзы" },
+    { en: "плиз кол зэ флайт этэндэнт о кру", es: "пор фавор льямэ а ля асафата о а ля трипуласьон", fr: "силь ву плэ аплэ лотэс у лекипаж", pl: "прошэ вэзвач стюардэсэ люб залогэ", de: "битэ руфэн зи ди флюгбэглайтэрин одэр ди крю", el: "паракало калестэ то плирома", tr: "лютфэн кабин гёрэвлисини вэя мюрэттэбаты чаирын", vi: "лам он гой тьеп вьен хоак тхуи тху доан", th: "кэруна риак пханакнган тонрап дуай", id: "толонг панггил прамугари атау авак капал", zh: "цин цзяо чэнъуюань хо чуаньюань" },
+    { en: "из зэа э доктэ о фёст эйд кит он бод", es: "ай ун мэдико о ботикин а бордо", fr: "я тиль эн мэдсэн у юн трус дё сэкур а бор", pl: "чы на покладзе ест лекаж люб аптэчка", de: "гибт эс ан борд айнэн арцт одэр айн эрстэ хильфэ зэт", el: "ипархи ятрос и фармакио сто скафос", tr: "гэмидэ вэя учакта доктор я да ильк ярдым чантасы вар мы", vi: "чэн тау ко бак си хоак хоп со кыу кхонг", th: "бон рыа ми мо ры чут патхомпхаябан май", id: "апаках ада доктер атау котак п3к ди капал", zh: "чуаньшан ю ишэн хо цзицзю сян ма" },
+    { en: "май иэз а блокт энд хёт бэдли", es: "тэнго лос оидос тапонадос и мэ дуэлен мучо", fr: "жэ ле зорэй буше э трэ маль", pl: "мам затканэ уши и бардзо мне болон", de: "майнэ орэн зинд фэрштопфт унд тун штарк вэ", el: "вулосан та афтя му кэ понун поли", tr: "кулакларым тыканды вэ чок аарыёр", vi: "тай той би у ва дау рат ньеу", th: "ху кхонг чан ы лэ пуат мак", id: "тэлинга сая тэрсумбат дан сангат сакит", zh: "во дэ эрдо дучжу лэ тэн дэ лихай" },
+    { en: "ай вил нид мэдикл хэлп эпон эрайвл", es: "нэсэситарэ асистэнсиа мэдика аль льегар", fr: "жорэ бэзуэн дюн эд мэдикаль а ляривэ", pl: "бэндэ потшэбовач помоцы мэдычнэй по пшибычу", de: "их вэрдэ бай дэр анкунфт мэдицинишэ хильфэ браухэн", el: "та хрэасто ятрики воифиа ката тин афикси", tr: "варышта тыбби ярдыма ихтияджым оладжак", vi: "той сэ кэн хо чо и тэ кхи дэн ной", th: "чан тон кан кхуам чхуай лыа тханг канпхэт мыа тхынг тхимай", id: "сая акан мэмбутухкан бантуан мэдис саат тиба", zh: "даода хоу во сюй яо иляо банчжу" }
+  ]
+};
+
+/* Реквизиты для донатов. Заполните своими значениями — код менять не нужно.
+   Пустая строка = строка не показывается.
+   ВАЖНО: сеть указывается рядом с адресом, чтобы человек не отправил не туда. */
+
+window.DONATE = {
+  usdt: { address: "TEssMc2yCQqotvBqmeRh3U7qDhjNyj6xby", network: "TRC-20" },
+  btc:  { address: "1CGyqwePoaJtXbh1E2GbjKDisjkRfZJzMK", network: "Bitcoin" },
+  links: [
+    { label: "Boosty", url: "" },
+    { label: "Ko-fi",  url: "" }
+  ]
+};
+
+
+/* SF Symbols style SVG icons & colors for all 16 situations */
+window.situationIcon = function (id) {
+  const map = {
+    emergency:  { color: "#FF3B30", bg: "rgba(255,59,48,.14)", svg: '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' },
+    pharmacy:   { color: "#34C759", bg: "rgba(52,199,89,.14)", svg: '<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>' },
+    doctor:     { color: "#007AFF", bg: "rgba(0,122,255,.14)", svg: '<path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/>' },
+    pain:       { color: "#FF9500", bg: "rgba(255,149,0,.14)", svg: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
+    fever:      { color: "#FF3B30", bg: "rgba(255,59,48,.14)", svg: '<path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0Z"/>' },
+    stomach:    { color: "#5856D6", bg: "rgba(88,86,214,.14)", svg: '<circle cx="12" cy="12" r="9"/><path d="M12 8a4 4 0 0 0-4 4c0 2.5 4 4 4 4s4-1.5 4-4"/>' },
+    allergy:    { color: "#30B0C7", bg: "rgba(48,176,199,.14)", svg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>' },
+    head:       { color: "#AF52DE", bg: "rgba(175,82,222,.14)", svg: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 0 1 5 0"/>' },
+    chronic:    { color: "#8E8E93", bg: "rgba(142,142,147,.15)", svg: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>' },
+    pregnancy:  { color: "#FF2D55", bg: "rgba(255,45,85,.14)", svg: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>' },
+    child:      { color: "#FF9500", bg: "rgba(255,149,0,.14)", svg: '<circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>' },
+    mental:     { color: "#5856D6", bg: "rgba(88,86,214,.14)", svg: '<path d="M12 3a6 6 0 0 0-6 6c0 3 2 5 2 8h8c0-3 2-5 2-8a6 6 0 0 0-6-6Z"/><path d="M9 21h6"/>' },
+    injury:     { color: "#FF3B30", bg: "rgba(255,59,48,.14)", svg: '<path d="m18.2 5.8-12.4 12.4a3 3 0 0 1-4.2-4.2L14 1.6a3 3 0 0 1 4.2 4.2Z"/><path d="m9 7 8 8"/>' },
+    dentist:    { color: "#32ADE6", bg: "rgba(50,173,230,.14)", svg: '<path d="M7 3c-2.5 0-4 2-4 5 0 2.5 1 4 1.5 7 .5 3 1 6 2.5 6s1.5-4 3-4h4c1.5 0 1.5 4 3 4s2-3 2.5-6c.5-3 1.5-4.5 1.5-7 0-3-1.5-5-4-5-1.8 0-3 1-5 1s-3.2-1-5-1Z"/>' },
+    payment:    { color: "#007AFF", bg: "rgba(0,122,255,.14)", svg: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>' },
+    understand: { color: "#8E8E93", bg: "rgba(142,142,147,.15)", svg: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' },
+    police:     { color: "#007AFF", bg: "rgba(0,122,255,.14)", svg: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M12 8v4"/><path d="M12 16h.01"/>' },
+    bites:      { color: "#FF9500", bg: "rgba(255,149,0,.14)", svg: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>' },
+    hike:       { color: "#34C759", bg: "rgba(52,199,89,.14)", svg: '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>' },
+    travel:     { color: "#32ADE6", bg: "rgba(50,173,230,.14)", svg: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>' }
+  };
+  return map[id] || map.understand;
+};
+
+window.MAP_LABEL = {
+  ru: "Открыть на карте", en: "Open in maps", es: "Abrir en mapa", fr: "Ouvrir sur la carte",
+  pl: "Otwórz na mapie", de: "Auf Karte öffnen", el: "Άνοιγμα στον χάρτη", tr: "Haritada aç",
+  vi: "Mở bản đồ", th: "เปิดในแผนที่", id: "Buka di peta", zh: "在地图中打开"
+};
+
+window.MAP_QUERY = {
+  emergency: { sr: "hitna pomoć bolnica", en: "emergency hospital", es: "urgencias hospital", fr: "urgences hôpital", pl: "szpital SOR", de: "Notaufnahme Krankenhaus", el: "νοσοκομείο επείγοντα", tr: "acil servis hastane", vi: "bệnh viện cấp cứu", th: "โรงพยาบาลฉุกเฉิน", id: "rumah sakit UGD", zh: "急诊医院" },
+  pharmacy:  { sr: "apoteka", en: "pharmacy", es: "farmacia", fr: "pharmacie", pl: "apteka", de: "Apotheke", el: "φαρμακείο", tr: "eczane", vi: "hiệu thuốc", th: "ร้านขายยา", id: "apotek", zh: "药店" },
+  doctor:    { sr: "dom zdravlja klinika", en: "medical clinic", es: "clínica médica", fr: "clinique médicale", pl: "przychodnia lekarz", de: "Arztpraxis Klinik", el: "ιατρείο κλινική", tr: "sağlık kliniği doktor", vi: "phòng khám", th: "คลินิกแพทย์", id: "klinik dokter", zh: "诊所" },
+  child:     { sr: "pedijatar dečija klinika", en: "pediatric clinic", es: "pediatra clínica", fr: "pédiatre clinique", pl: "pediatra przychodnia", de: "Kinderarzt", el: "παιδίατρος", tr: "çocuk doktoru", vi: "phòng khám nhi", th: "คลินิกเด็ก", id: "dokter anak", zh: "儿科诊所" },
+  injury:    { sr: "urgentni centar", en: "urgent care", es: "urgencias traumatología", fr: "urgences traumatologie", pl: "szpitalny oddział ratunkowy", de: "Notaufnahme", el: "επείγοντα", tr: "acil servis", vi: "cấp cứu chấn thương", th: "ห้องฉุกเฉิน", id: "instalasi gawat darurat", zh: "急诊室" },
+  dentist:   { sr: "stomatolog zubar", en: "emergency dentist", es: "dentista urgencias", fr: "dentiste urgence", pl: "stomatolog pogotowie", de: "Zahnarzt Notdienst", el: "οδοντίατρος επείγοντα", tr: "acil diş kliniği", vi: "nha khoa cấp cứu", th: "คลินิกทันตกรรม", id: "dokter gigi", zh: "牙科急诊" },
+  police:    { sr: "policija", en: "police station", es: "comisaría de policía", fr: "commissariat de police", pl: "policja komisariat", de: "Polizeiwache", el: "αστυνομικό τμήμα", tr: "polis merkezi", vi: "đồn cảnh sát", th: "สถานีตำรวจ", id: "kantor polisi", zh: "警察局" }
+};
+
+
+
+(function () {
+  "use strict";
+  const DATA = window.PHRASEBOOK;
+  const LS_KEY = "pb.android.v1";
+
+  const CARD_FIELDS = [
+    { key: "name" }, { key: "birth" }, { key: "blood" },
+    { key: "allergies" }, { key: "meds" }, { key: "conditions" }, { key: "contact" }
+  ];
+  const CARD_TITLES = {
+    sr: "Zdravstvena kartica", en: "Health card", es: "Tarjeta de salud",
+    fr: "Carte de santé", pl: "Karta zdrowia", de: "Gesundheitskarte",
+    el: "Κάρτα υγείας", tr: "Sağlık kartı", vi: "Thẻ sức khỏe",
+    th: "บัตรสุขภาพ", id: "Kartu kesehatan", zh: "健康卡"
+  };
+
+  const state = {
+    tab: "situations", situationId: null, searchQuery: "", activeTag: "all",
+    ui: "ru", lang: "sr", big: false, theme: "light", card: {}
+  };
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved && typeof saved === "object") Object.assign(state, saved);
+    } catch (e) {}
+  }
+  function save() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        ui: state.ui, lang: state.lang, big: state.big, theme: state.theme, card: state.card
+      }));
+    } catch (e) {}
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  const $ = (sel) => document.querySelector(sel);
+
+  function uiLanguages() {
+    return [{ code: "ru", native: "Русский", ru: "Русский" }]
+      .concat(DATA.languages.filter((l) => l.code !== "sr"));
+  }
+  function t(key) {
+    const pack = (window.I18N && window.I18N[state.ui]) || (window.I18N && window.I18N.en) || {};
+    return (pack.ui && pack.ui[key] !== undefined) ? pack.ui[key] : key;
+  }
+  function sitText(id) {
+    const pack = (window.I18N && window.I18N[state.ui]) || (window.I18N && window.I18N.en) || {};
+    return (pack.sit && pack.sit[id]) || ["", ""];
+  }
+  function label(key) { return ((window.CARD_LABELS && window.CARD_LABELS[state.lang]) || {})[key] || key; }
+  function uiLabel(key) { return ((window.CARD_LABELS && window.CARD_LABELS[state.ui]) || {})[key] || key; }
+  function cardTitle() { return CARD_TITLES[state.lang] || CARD_TITLES.en; }
+
+  const CYR = {
+    a: "а", b: "б", c: "ц", "č": "ч", "ć": "ћ", d: "д", "đ": "ђ", e: "е",
+    f: "ф", g: "г", h: "х", i: "и", j: "ј", k: "к", l: "л", m: "м", n: "н",
+    o: "о", p: "п", r: "р", s: "с", "š": "ш", t: "т", u: "у", v: "в", z: "з", "ž": "ж"
+  };
+  const DIGRAPHS = { "dž": "џ", lj: "љ", nj: "њ" };
+  function toCyr(text) {
+    const src = String(text || ""), low = src.toLowerCase();
+    let out = "", i = 0;
+    while (i < low.length) {
+      const pair = low.slice(i, i + 2);
+      if (DIGRAPHS[pair]) { out += DIGRAPHS[pair]; i += 2; continue; }
+      out += CYR[low[i]] !== undefined ? CYR[low[i]] : low[i];
+      i += 1;
+    }
+    if (src && src[0] === src[0].toUpperCase() && src[0] !== src[0].toLowerCase()) {
+      out = out.charAt(0).toUpperCase() + out.slice(1);
+    }
+    return out;
+  }
+
+  function phraseView(sid, idx, p) {
+    const entry = ((window.LANGS && window.LANGS[sid]) || [])[idx] || {};
+    const src = state.ui === "ru" ? p.ru : (entry[state.ui] || p.ru);
+    let main = "", sub = "", tr = "";
+    if (state.lang === "sr") { main = toCyr(p.sr); sub = p.sr; }
+    else { main = entry[state.lang] || p.sr; }
+    if (state.ui === "ru" && state.lang !== "sr") {
+      tr = (((window.TRANSLIT && window.TRANSLIT[sid]) || [])[idx] || {})[state.lang] || "";
+    }
+    return { src: src !== main ? src : "", main, sub, tr };
+  }
+
+  const SITUATION_TAGS = {
+    urgent:   ["emergency", "police", "hike", "injury", "bites", "allergy"],
+    symptoms: ["pain", "fever", "stomach", "head", "mental"],
+    care:     ["pharmacy", "doctor", "dentist", "chronic", "payment"],
+    special:  ["pregnancy", "child", "travel", "understand"]
+  };
+  function tagLabels() {
+    if (state.ui === "ru") {
+      return [
+        { id: "all", label: "Все" },
+        { id: "urgent", label: "Экстренно" },
+        { id: "symptoms", label: "Симптомы" },
+        { id: "care", label: "Врач и аптека" },
+        { id: "special", label: "Особые случаи" }
+      ];
+    }
+    return [
+      { id: "all", label: "All" }, { id: "urgent", label: "Urgent" },
+      { id: "symptoms", label: "Symptoms" }, { id: "care", label: "Care" }, { id: "special", label: "Special" }
+    ];
+  }
+
+  function applyThemeAndSize() {
+    document.documentElement.setAttribute("data-theme", state.theme);
+    document.documentElement.setAttribute("data-size", state.big ? "big" : "normal");
+    const btn = $("#fontBtn");
+    if (btn) btn.classList.toggle("is-active", state.big);
+  }
+
+  const overlay = $("#overlay"), overlayBody = $("#overlayBody"), overlaySheet = $("#overlaySheet");
+  function openOverlay(html) { overlayBody.innerHTML = html; overlay.hidden = false; }
+  function closeOverlay() { overlay.hidden = true; overlayBody.innerHTML = ""; }
+  overlay.addEventListener("click", (e) => { if (!overlaySheet.contains(e.target)) closeOverlay(); });
+  $("#overlayClose").addEventListener("click", closeOverlay);
+
+  function showPhrase(sid, idx, p) {
+    const v = phraseView(sid, idx, p);
+    openOverlay(
+      `<div>${esc(v.main)}</div>` +
+      `<span class="overlay-sub">` +
+      (v.tr ? `<span class="overlay-tr">[${esc(v.tr)}]</span><br>` : "") +
+      (v.sub ? `<span class="ov-lat">${esc(v.sub)}</span><br>` : "") +
+      (v.src ? `${esc(v.src)}` : "") + `</span>`
+    );
+  }
+
+  function showCard() {
+    const rows = CARD_FIELDS.map((f) => {
+      const v = String(state.card[f.key] || "").trim();
+      return v ? `<div style="margin-bottom:6px"><span style="color:var(--md-muted)">${esc(label(f.key))}:</span> ${esc(v)}</div>` : "";
+    }).filter(Boolean).join("");
+    openOverlay(rows ? `<div style="font-size:18px;line-height:1.45">${rows}</div>` : `<div>${esc(t("cardTitle"))}</div><span class="overlay-sub">${esc(t("cardLead"))}</span>`);
+  }
+
+  function renderSituations() {
+    const q = state.searchQuery.trim().toLowerCase();
+    const allowed = state.activeTag === "all" ? null : SITUATION_TAGS[state.activeTag];
+    const filtered = DATA.situations.filter((s) => {
+      if (allowed && !allowed.includes(s.id)) return false;
+      if (!q) return true;
+      const st = sitText(s.id);
+      return st[0].toLowerCase().includes(q) || st[1].toLowerCase().includes(q);
+    });
+
+    const tiles = filtered.map((s) => {
+      const st = sitText(s.id), ic = window.situationIcon(s.id);
+      return `
+      <button class="m3-card" type="button" data-open="${esc(s.id)}">
+        <span class="tile-icon" style="color:${ic.color};background:${ic.bg}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic.svg}</svg>
+        </span>
+        <div>
+          <div class="tile-title">${esc(st[0])}</div>
+          <div class="tile-hint">${esc(st[1])}</div>
+        </div>
+      </button>`;
+    }).join("");
+
+    const checkSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="20 6 9 17 4 12"/></svg>';
+    return `
+      <h1>${esc(t("homeTitle"))}</h1>
+      <p class="lead">${esc(t("homeLead"))}</p>
+      <div class="m3-search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="sitSearch" type="search" placeholder="${state.ui === "ru" ? "Поиск ситуации" : "Search"}" value="${esc(state.searchQuery)}">
+        <button class="m3-search-clear ${state.searchQuery ? "visible" : ""}" id="sitSearchClear" type="button">✕</button>
+      </div>
+      <div class="m3-chips">
+        ${tagLabels().map((tg) => `<button class="m3-chip${state.activeTag === tg.id ? " is-active" : ""}" type="button" data-tag="${tg.id}">${state.activeTag === tg.id ? checkSvg : ""}${esc(tg.label)}</button>`).join("")}
+      </div>
+      <div class="grid">${tiles}</div>
+      <div class="m3-banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>${esc(t("offText"))}</span>
+      </div>`;
+  }
+
+  function renderSituation(id) {
+    const s = DATA.situations.find((x) => x.id === id);
+    if (!s) return renderSituations();
+    const st = sitText(s.id), ic = window.situationIcon(s.id);
+    const query = ((window.MAP_QUERY && window.MAP_QUERY[s.id]) || {})[state.lang];
+    const pin = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
+    const mapRow = query ? `
+      <div class="map-row">
+        <a class="m3-assist-chip filled" href="https://www.google.com/maps/search/?api=1&query=${esc(encodeURIComponent(query))}" target="_blank" rel="noopener">${pin} Google Карты</a>
+        ${state.ui === "ru" ? `<a class="m3-assist-chip" href="https://yandex.ru/maps/?text=${esc(encodeURIComponent(query))}" target="_blank" rel="noopener">Яндекс Карты</a>` : ""}
+      </div>` : "";
+
+    return `
+      <div class="hero">
+        <span class="tile-icon" style="color:${ic.color};background:${ic.bg}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic.svg}</svg>
+        </span>
+        <div>
+          <h1 class="hero-title">${esc(st[0])}</h1>
+          <p class="hero-sub">${esc(st[1])}</p>
+        </div>
+      </div>
+      ${mapRow}
+      <div class="phrase-list">
+        ${s.phrases.map((p, i) => {
+          const v = phraseView(s.id, i, p);
+          return `
+          <button class="m3-phrase-card" type="button" data-phrase="${i}">
+            ${v.src ? `<span class="phrase-ru">${esc(v.src)}</span>` : ""}
+            <span class="phrase-main">${esc(v.main)}</span>
+            ${v.tr ? `<span class="phrase-tr">[${esc(v.tr)}]</span>` : ""}
+            ${v.sub ? `<span class="phrase-lat">${esc(v.sub)}</span>` : ""}
+          </button>`;
+        }).join("")}
+      </div>`;
+  }
+
+  function renderCard() {
+    const fields = CARD_FIELDS.map((f) => `
+      <div class="m3-field">
+        <label for="f-${f.key}">${esc(uiLabel(f.key))}</label>
+        <input id="f-${f.key}" type="text" data-field="${f.key}" value="${esc(state.card[f.key] || "")}" placeholder="—">
+      </div>`).join("");
+    const rows = CARD_FIELDS.map((f) => {
+      const v = String(state.card[f.key] || "").trim();
+      return `<div class="m3-kv-row"><dt>${esc(label(f.key))}</dt><dd>${v ? esc(v) : "—"}</dd></div>`;
+    }).join("");
+
+    return `
+      <h1>${esc(t("cardTitle"))}</h1>
+      <p class="lead">${esc(t("cardLead"))}</p>
+      <div class="m3-form">${fields}</div>
+      <div class="btn-row">
+        <button class="m3-btn m3-btn-filled" type="button" data-show-card>${esc(t("showDoc"))}</button>
+        <button class="m3-btn m3-btn-tonal" type="button" data-print>${esc(t("print"))}</button>
+      </div>
+      <div class="m3-preview-card" id="cardPreview">
+        <div class="m3-preview-head">${esc(cardTitle())}</div>
+        <dl style="margin:0">${rows}</dl>
+      </div>`;
+  }
+
+  function renderSettings() {
+    const phrases = DATA.situations.reduce((n, s) => n + s.phrases.length, 0);
+    const d = window.DONATE || {};
+    return `
+      <h1>${esc(t("tabSettings"))}</h1>
+      <div class="m3-section-title">${esc(t("sheetTitle"))} & ${esc(t("themeTitle"))}</div>
+      <div class="m3-list-card">
+        <button class="m3-list-item" type="button" data-open-lang style="cursor:pointer">
+          <div class="m3-list-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span>${esc(t("sheetTitle"))}</span>
+          </div>
+          <span style="color:var(--md-primary);font-weight:500">${esc(state.ui.toUpperCase())} → ${esc(state.lang.toUpperCase())}</span>
+        </button>
+        <div class="m3-list-item">
+          <div class="m3-list-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <span>${esc(t("darkTheme"))}</span>
+          </div>
+          <button class="m3-switch" type="button" role="switch" id="themeSwitch" aria-checked="${state.theme === "dark" ? "true" : "false"}"></button>
+        </div>
+      </div>
+
+      <div class="m3-section-title">${esc(t("tabAbout"))}</div>
+      <div class="m3-list-card">
+        <div class="m3-list-item"><span>${esc(t("countSit"))}</span><span>${DATA.situations.length}</span></div>
+        <div class="m3-list-item"><span>${esc(t("countPhr"))}</span><span>${phrases}</span></div>
+        <div class="m3-list-item"><span>${esc(t("version"))}</span><span>${esc(DATA.version)} · ${esc(DATA.updated)}</span></div>
+        <div class="m3-list-item"><span>${esc(t("net"))}</span><span>${esc(t("netNo"))}</span></div>
+      </div>
+
+      <div class="m3-banner">${esc(t("discText"))}</div>
+
+      <div class="m3-section-title">${esc(t("donateTitle"))}</div>
+      <div class="m3-list-card">
+        ${[["usdt", d.usdt], ["btc", d.btc]].filter(([, c]) => c && c.address).map(([k, c]) => `
+          <div class="m3-list-item">
+            <div style="min-width:0">
+              <div style="font-weight:500">${esc(k.toUpperCase())} · ${esc(c.network)}</div>
+              <div class="m3-list-sub">${esc(c.address)}</div>
+            </div>
+            <button class="m3-assist-chip" type="button" data-copy="${esc(c.address)}">${esc(t("donateCopy"))}</button>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  const langSheet = $("#langSheet"), langList = $("#langList");
+  function openLangSheet() {
+    $("#sheetTitle").textContent = t("sheetTitle");
+    langList.innerHTML =
+      `<div class="sheet-section">${esc(t("sheetUi"))}</div>` +
+      uiLanguages().map((l) => `<button class="lang-item${l.code === state.ui ? " is-active" : ""}" data-set="ui" data-code="${l.code}"><span>${esc(l.native)}</span><span style="opacity:.65">${esc(l.ru)}</span></button>`).join("") +
+      `<div class="sheet-section">${esc(t("sheetPhr"))}</div>` +
+      DATA.languages.map((l) => `<button class="lang-item${l.code === state.lang ? " is-active" : ""}" data-set="phr" data-code="${l.code}"><span>${esc(l.native)}</span><span style="opacity:.65">${esc(l.ru)}</span></button>`).join("");
+    langSheet.hidden = false;
+  }
+
+  function render(keepScroll) {
+    applyThemeAndSize();
+    const navLeft = $("#navLeft");
+    navLeft.innerHTML = (state.tab === "situations" && state.situationId)
+      ? `<button class="m3-icon-btn" type="button" data-back aria-label="Назад"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>`
+      : "";
+
+    const view = $("#view");
+    if (state.tab === "situations") view.innerHTML = state.situationId ? renderSituation(state.situationId) : renderSituations();
+    else if (state.tab === "card") view.innerHTML = renderCard();
+    else view.innerHTML = renderSettings();
+
+    document.querySelectorAll(".m3-nav-item").forEach((el) => el.classList.toggle("is-active", el.dataset.tab === state.tab));
+    document.querySelectorAll("[data-tab-label]").forEach((el) => { el.textContent = t(el.dataset.tabLabel); });
+    $("#appTitle").textContent = t("app");
+    $("#appSub").textContent = t("medical");
+    $("#langCode").textContent = state.ui.toUpperCase() + " → " + state.lang.toUpperCase();
+    if (!keepScroll) window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-open],[data-phrase],[data-back],[data-tab],[data-tag],[data-show-card],[data-print],#themeSwitch,[data-copy],#sitSearchClear,#langBtn,[data-open-lang]");
+    if (!el) return;
+    if (el.id === "langBtn" || el.hasAttribute("data-open-lang")) { openLangSheet(); return; }
+    if (el.dataset.tag) { state.activeTag = el.dataset.tag; render(true); return; }
+    if (el.id === "sitSearchClear") { state.searchQuery = ""; render(true); return; }
+    if (el.dataset.tab) { state.tab = el.dataset.tab; if (state.tab !== "situations") state.situationId = null; render(); return; }
+    if (el.hasAttribute("data-back")) { state.situationId = null; render(); return; }
+    if (el.dataset.open) { state.situationId = el.dataset.open; render(); return; }
+    if (el.dataset.phrase != null) {
+      const s = DATA.situations.find((x) => x.id === state.situationId);
+      if (s) showPhrase(s.id, Number(el.dataset.phrase), s.phrases[Number(el.dataset.phrase)]);
+      return;
+    }
+    if (el.hasAttribute("data-copy")) {
+      const txt = el.getAttribute("data-copy");
+      const done = () => { const o = el.textContent; el.textContent = t("donateCopied"); setTimeout(() => el.textContent = o, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(done); else done();
+      return;
+    }
+    if (el.id === "themeSwitch") { state.theme = state.theme === "dark" ? "light" : "dark"; save(); render(true); return; }
+    if (el.hasAttribute("data-show-card")) { showCard(); return; }
+    if (el.hasAttribute("data-print")) { window.print(); return; }
+  });
+
+  document.addEventListener("input", (e) => {
+    if (e.target.id === "sitSearch") {
+      state.searchQuery = e.target.value; render(true);
+      const n = $("#sitSearch"); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); }
+      return;
+    }
+    const inp = e.target.closest("[data-field]");
+    if (!inp) return;
+    state.card[inp.dataset.field] = inp.value; save();
+    const dl = $("#cardPreview dl");
+    if (dl) dl.innerHTML = CARD_FIELDS.map((f) => `<div class="m3-kv-row"><dt>${esc(label(f.key))}</dt><dd>${esc(String(state.card[f.key] || "").trim() || "—")}</dd></div>`).join("");
+  });
+
+  $("#fontBtn").addEventListener("click", () => { state.big = !state.big; save(); render(true); });
+  langSheet.addEventListener("click", (e) => {
+    if (e.target.closest("[data-close-sheet]")) { langSheet.hidden = true; return; }
+    const item = e.target.closest("[data-code]");
+    if (!item) return;
+    if (item.dataset.set === "ui") state.ui = item.dataset.code; else state.lang = item.dataset.code;
+    save(); langSheet.hidden = true; render();
+  });
+
+  load();
+  render();
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
+    });
+  }
+})();
+
+  </script>
+</body>
+</html>
